@@ -27,7 +27,7 @@ var fnNumCPU = runtime.NumCPU
 type Server struct {
 	isRunning        bool
 	processor        *rpc.Processor
-	gateway          *GateWay
+	sessionServer    *SessionServer
 	numOfThreads     int
 	maxNodeDepth     int16
 	maxCallDepth     int16
@@ -48,7 +48,7 @@ func NewServer(logReceiver rpc.IStreamReceiver) *Server {
 	ret := &Server{
 		isRunning:        false,
 		processor:        nil,
-		gateway:          nil,
+		sessionServer:    nil,
 		numOfThreads:     fnNumCPU() * defaultThreadsPerCPU,
 		maxNodeDepth:     defaultMaxNodeDepth,
 		maxCallDepth:     defaultMaxCallDepth,
@@ -63,11 +63,7 @@ func NewServer(logReceiver rpc.IStreamReceiver) *Server {
 		ret.numOfThreads = defaultMaxNumOfThreads
 	}
 
-	ret.gateway = NewGateWay(
-		0,
-		GetDefaultConfig(),
-		ret,
-	)
+	ret.sessionServer = NewSessionServer(GetDefaultSessionConfig(), ret)
 
 	return ret
 }
@@ -78,7 +74,7 @@ func (p *Server) Listen(
 	addr string,
 	tlsConfig *tls.Config,
 ) *Server {
-	p.gateway.Listen(network, addr, tlsConfig)
+	p.sessionServer.Listen(network, addr, tlsConfig)
 	return p
 }
 
@@ -88,7 +84,7 @@ func (p *Server) ListenWithDebug(
 	addr string,
 	tlsConfig *tls.Config,
 ) *Server {
-	p.gateway.ListenWithDebug(network, addr, tlsConfig)
+	p.sessionServer.ListenWithDebug(network, addr, tlsConfig)
 	return p
 }
 
@@ -230,7 +226,7 @@ func (p *Server) OnReceiveStream(stream *rpc.Stream) {
 		case rpc.StreamKindRPCResponseError:
 			fallthrough
 		case rpc.StreamKindRPCBoardCast:
-			p.gateway.OutStream(stream)
+			p.sessionServer.OutStream(stream)
 		default:
 			if stream.GetKind() == rpc.StreamKindSystemErrorReport {
 				p.logReceiver.OnReceiveStream(stream)
@@ -273,7 +269,7 @@ func (p *Server) Open() bool {
 	}()
 
 	if ret {
-		p.gateway.Open()
+		p.sessionServer.Open()
 	}
 
 	return ret
@@ -299,7 +295,7 @@ func (p *Server) Close() bool {
 		return false
 	}
 
-	p.gateway.Close()
+	p.sessionServer.Close()
 	p.processor.Close()
 	p.processor = nil
 	p.isRunning = false
