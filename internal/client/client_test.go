@@ -2,6 +2,7 @@ package client
 
 import (
 	"crypto/tls"
+	"fmt"
 	"math/rand"
 	"net"
 	"sync"
@@ -145,6 +146,180 @@ func TestSubscription_Close(t *testing.T) {
 		assert(sub.client).Equal(nil)
 		assert(sub.onMessage).Equal(nil)
 		assert(client.subscriptionMap).Equal(map[string][]*Subscription{})
+	})
+}
+
+func TestSendItem_NewSendItem(t *testing.T) {
+	t.Run("test", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := NewSendItem(5432)
+		assert(v.isRunning).IsTrue()
+		assert(base.TimeNow().UnixNano()-v.startTimeNS < int64(time.Second)).
+			IsTrue()
+		assert(base.TimeNow().UnixNano()-v.startTimeNS >= 0).IsTrue()
+		assert(v.sendTimeNS).Equal(int64(0))
+		assert(v.timeoutNS).Equal(int64(5432))
+		assert(len(v.returnCH)).Equal(0)
+		assert(cap(v.returnCH)).Equal(1)
+		assert(v.sendStream).IsNotNil()
+		assert(v.next).IsNil()
+	})
+}
+
+func TestSendItem_Back(t *testing.T) {
+	t.Run("stream is nil", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := NewSendItem(0)
+		assert(v.Back(nil)).IsFalse()
+		assert(len(v.returnCH)).Equal(0)
+	})
+
+	t.Run("item is not running", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := NewSendItem(0)
+		v.isRunning = false
+		assert(v.Back(rpc.NewStream())).IsFalse()
+		assert(len(v.returnCH)).Equal(0)
+	})
+
+	t.Run("test ok", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := NewSendItem(0)
+		stream := rpc.NewStream()
+		assert(v.Back(stream)).IsTrue()
+		assert(len(v.returnCH)).Equal(1)
+		assert(<-v.returnCH).Equal(stream)
+	})
+}
+
+func TestSendItem_CheckTime(t *testing.T) {
+	t.Run("test ok", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := NewSendItem(int64(time.Millisecond))
+		v.sendStream.SetCallbackID(15)
+		time.Sleep(100 * time.Millisecond)
+		assert(v.CheckTime(base.TimeNow().UnixNano())).IsTrue()
+		assert(v.isRunning).IsFalse()
+		assert(len(v.returnCH)).Equal(1)
+		stream := <-v.returnCH
+		assert(stream.GetCallbackID()).Equal(uint64(15))
+		assert(stream.ReadUint64()).
+			Equal(uint64(base.ErrClientTimeout.GetCode()), nil)
+		assert(stream.ReadString()).
+			Equal(base.ErrClientTimeout.GetMessage(), nil)
+		assert(stream.IsReadFinish()).IsTrue()
+	})
+
+	t.Run("it is not timeout", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := NewSendItem(int64(time.Second))
+		v.sendStream.SetCallbackID(15)
+		time.Sleep(10 * time.Millisecond)
+		assert(v.CheckTime(base.TimeNow().UnixNano())).IsFalse()
+		assert(v.isRunning).IsTrue()
+		assert(len(v.returnCH)).Equal(0)
+	})
+
+	t.Run("it is not running", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := NewSendItem(int64(time.Millisecond))
+		v.sendStream.SetCallbackID(15)
+		time.Sleep(10 * time.Millisecond)
+		v.isRunning = false
+		assert(v.CheckTime(base.TimeNow().UnixNano())).IsFalse()
+		assert(v.isRunning).IsFalse()
+		assert(len(v.returnCH)).Equal(0)
+	})
+}
+
+func TestSendItem_Release(t *testing.T) {
+	t.Run("test", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := NewSendItem(0)
+		for i := 0; i < 10000; i++ {
+			v.sendStream.PutBytes([]byte{1})
+		}
+
+		v.Release()
+		assert(v.sendStream.GetWritePos()).Equal(rpc.StreamHeadSize)
+	})
+
+	t.Run("test put back", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		mp := map[string]bool{}
+		for i := 0; i < 1000; i++ {
+			v := NewSendItem(0)
+			mp[fmt.Sprintf("%p", v)] = true
+			v.Release()
+		}
+		assert(len(mp) < 1000).IsTrue()
+	})
+}
+
+func TestChannel_Use(t *testing.T) {
+	t.Run("p.item != nil", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := &Channel{sequence: 642, item: &SendItem{}}
+		assert(v.Use(&SendItem{}, 32)).IsFalse()
+	})
+
+	t.Run("test ok", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := &Channel{sequence: 642}
+		item := NewSendItem(0)
+		assert(v.Use(item, 32)).IsTrue()
+		assert(v.sequence).Equal(uint64(674))
+		assert(v.item).Equal(item)
+		assert(item.sendStream.GetCallbackID()).Equal(uint64(674))
+		nowNS := base.TimeNow().UnixNano()
+		assert(nowNS-v.item.sendTimeNS < int64(time.Second)).IsTrue()
+		assert(nowNS-v.item.sendTimeNS > -int64(time.Second)).IsTrue()
+	})
+}
+
+func TestChannel_Free(t *testing.T) {
+	t.Run("p.item == nil", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := &Channel{sequence: 642, item: nil}
+		assert(v.Free(rpc.NewStream())).IsFalse()
+	})
+
+	t.Run("test ok", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		item := NewSendItem(0)
+		v := &Channel{sequence: 642, item: item}
+		stream := rpc.NewStream()
+		assert(len(item.returnCH)).Equal(0)
+		assert(v.Free(stream)).IsTrue()
+		assert(v.item).IsNil()
+		assert(len(item.returnCH)).Equal(1)
+		assert(<-item.returnCH).Equal(stream)
+	})
+}
+
+func TestChannel_CheckTime(t *testing.T) {
+	t.Run("p.item == nil", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := &Channel{sequence: 642, item: nil}
+		assert(v.CheckTime(base.TimeNow().UnixNano())).IsFalse()
+	})
+
+	t.Run("CheckTime return false", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		v := &Channel{sequence: 642, item: NewSendItem(int64(time.Second))}
+		assert(v.CheckTime(base.TimeNow().UnixNano())).IsFalse()
+	})
+
+	t.Run("CheckTime return true", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		item := NewSendItem(int64(time.Millisecond))
+		v := &Channel{sequence: 642, item: item}
+
+		time.Sleep(10 * time.Millisecond)
+		assert(len(item.returnCH)).Equal(0)
+		assert(v.CheckTime(base.TimeNow().UnixNano())).IsTrue()
+		assert(v.item).IsNil()
+		assert(len(item.returnCH)).Equal(1)
 	})
 }
 

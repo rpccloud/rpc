@@ -310,12 +310,12 @@ func TestInitSession(t *testing.T) {
 		assert := base.NewAssert(t)
 		netConn := newTestNetConn()
 		streamReceiver := rpc.NewTestStreamReceiver()
-		gw := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		sessionServer := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
 
 		streamConn := adapter.NewStreamConn(
 			false,
 			adapter.NewServerSyncConn(netConn, 1200, 1200),
-			gw,
+			sessionServer,
 		)
 
 		stream := rpc.NewStream()
@@ -681,7 +681,6 @@ func TestSession_OutStream(t *testing.T) {
 
 		for i := 1; i <= len(session.channels); i++ {
 			stream := rpc.NewStream()
-			stream.SetGatewayID(1234)
 			stream.SetSessionID(5678)
 			stream.SetKind(rpc.StreamKindRPCBoardCast)
 			stream.WriteString("#.test%Msg")
