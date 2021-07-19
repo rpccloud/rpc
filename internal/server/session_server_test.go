@@ -393,7 +393,7 @@ func TestInitSession(t *testing.T) {
 		streamConn.OnReadBytes(stream.GetBuffer())
 
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrGateWaySeedOverflows)
+			Equal(nil, base.ErrServerSessionSeedOverflows)
 	})
 
 	t.Run("stream is ok, create new session", func(t *testing.T) {
@@ -1050,7 +1050,7 @@ func TestSessionServer_Listen(t *testing.T) {
 		v.isRunning = true
 		assert(v.Listen("tcp", "0.0.0.0:8080", nil)).Equal(v)
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrGatewayAlreadyRunning)
+			Equal(nil, base.ErrServerAlreadyRunning)
 	})
 
 	t.Run("SessionServer is not running", func(t *testing.T) {
@@ -1079,7 +1079,7 @@ func TestSessionServer_ListenWithDebug(t *testing.T) {
 		v.isRunning = true
 		assert(v.ListenWithDebug("tcp", "0.0.0.0:8080", nil)).Equal(v)
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrGatewayAlreadyRunning)
+			Equal(nil, base.ErrServerAlreadyRunning)
 	})
 
 	t.Run("SessionServer is not running", func(t *testing.T) {
@@ -1108,7 +1108,7 @@ func TestSessionServer_Open(t *testing.T) {
 		v.isRunning = true
 		v.Open()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrGatewayAlreadyRunning)
+			Equal(nil, base.ErrServerAlreadyRunning)
 	})
 
 	t.Run("no valid adapter", func(t *testing.T) {
@@ -1117,7 +1117,7 @@ func TestSessionServer_Open(t *testing.T) {
 		v := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
 		v.Open()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrGatewayNoAvailableAdapter)
+			Equal(nil, base.ErrServerNoListenersAvailable)
 	})
 
 	t.Run("test", func(t *testing.T) {
@@ -1197,7 +1197,7 @@ func TestSessionServer_ReceiveStreamFromRouter(t *testing.T) {
 		stream.SetSessionID(11)
 		v.OutStream(stream)
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrGateWaySessionNotFound)
+			Equal(nil, base.ErrServerSessionNotFound)
 	})
 }
 

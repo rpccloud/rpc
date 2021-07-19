@@ -264,7 +264,7 @@ func TestServer_OnReceiveStream(t *testing.T) {
 		v.OnReceiveStream(stream)
 
 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-			Equal(nil, base.ErrGateWaySessionNotFound)
+			Equal(nil, base.ErrServerSessionNotFound)
 
 		for !base.IsTCPPortOccupied(8888) {
 			time.Sleep(10 * time.Millisecond)
@@ -297,7 +297,7 @@ func TestServer_OnReceiveStream(t *testing.T) {
 		v.OnReceiveStream(stream)
 
 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-			Equal(nil, base.ErrGateWaySessionNotFound)
+			Equal(nil, base.ErrServerSessionNotFound)
 
 		for !base.IsTCPPortOccupied(8888) {
 			time.Sleep(10 * time.Millisecond)
@@ -326,7 +326,7 @@ func TestServer_OnReceiveStream(t *testing.T) {
 
 		v.OnReceiveStream(stream)
 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-			Equal(nil, base.ErrGateWaySessionNotFound)
+			Equal(nil, base.ErrServerSessionNotFound)
 
 		for !base.IsTCPPortOccupied(8888) {
 			time.Sleep(10 * time.Millisecond)
@@ -355,7 +355,7 @@ func TestServer_OnReceiveStream(t *testing.T) {
 
 		v.OnReceiveStream(stream)
 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-			Equal(nil, base.ErrGateWaySessionNotFound)
+			Equal(nil, base.ErrServerSessionNotFound)
 
 		for !base.IsTCPPortOccupied(8888) {
 			time.Sleep(10 * time.Millisecond)
@@ -384,7 +384,7 @@ func TestServer_OnReceiveStream(t *testing.T) {
 
 		v.OnReceiveStream(stream)
 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-			Equal(nil, base.ErrGateWaySessionNotFound)
+			Equal(nil, base.ErrServerSessionNotFound)
 
 		for !base.IsTCPPortOccupied(8888) {
 			time.Sleep(10 * time.Millisecond)

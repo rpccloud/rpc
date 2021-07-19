@@ -149,7 +149,7 @@ func InitSession(
 		if session == nil {
 			if sessionServer.TotalSessions() >= int64(sessionConfig.serverMaxSessions) {
 				stream.Release()
-				sessionServer.OnConnError(streamConn, base.ErrGateWaySeedOverflows)
+				sessionServer.OnConnError(streamConn, base.ErrServerSessionSeedOverflows)
 				return
 			}
 
@@ -481,7 +481,7 @@ func (p *SessionServer) Listen(
 		))
 	} else {
 		p.streamReceiver.OnReceiveStream(
-			rpc.MakeSystemErrorStream(base.ErrGatewayAlreadyRunning),
+			rpc.MakeSystemErrorStream(base.ErrServerAlreadyRunning),
 		)
 	}
 
@@ -509,7 +509,7 @@ func (p *SessionServer) ListenWithDebug(
 		))
 	} else {
 		p.streamReceiver.OnReceiveStream(
-			rpc.MakeSystemErrorStream(base.ErrGatewayAlreadyRunning),
+			rpc.MakeSystemErrorStream(base.ErrServerAlreadyRunning),
 		)
 	}
 
@@ -524,12 +524,12 @@ func (p *SessionServer) Open() {
 
 		if p.isRunning {
 			p.streamReceiver.OnReceiveStream(
-				rpc.MakeSystemErrorStream(base.ErrGatewayAlreadyRunning),
+				rpc.MakeSystemErrorStream(base.ErrServerAlreadyRunning),
 			)
 			return false
 		} else if len(p.adapters) <= 0 {
 			p.streamReceiver.OnReceiveStream(
-				rpc.MakeSystemErrorStream(base.ErrGatewayNoAvailableAdapter),
+				rpc.MakeSystemErrorStream(base.ErrServerNoListenersAvailable),
 			)
 			return false
 		} else {
@@ -590,7 +590,7 @@ func (p *SessionServer) OutStream(stream *rpc.Stream) {
 	if session, ok := p.GetSession(stream.GetSessionID()); ok {
 		session.OutStream(stream)
 	} else {
-		errStream := rpc.MakeSystemErrorStream(base.ErrGateWaySessionNotFound)
+		errStream := rpc.MakeSystemErrorStream(base.ErrServerSessionNotFound)
 		errStream.SetSessionID(stream.GetSessionID())
 		p.streamReceiver.OnReceiveStream(errStream)
 		stream.Release()

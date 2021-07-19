@@ -239,38 +239,6 @@ var (
 	)
 )
 
-const gatewayErrorSeg = 2 << 8
-
-var (
-	// ErrGatewayNoAvailableAdapter ...
-	ErrGatewayNoAvailableAdapter = DefineConfigError(
-		gatewayErrorSeg|1,
-		ErrorLevelFatal,
-		"no listener is set on the server",
-	)
-
-	// ErrGatewayAlreadyRunning ...
-	ErrGatewayAlreadyRunning = DefineConfigError(
-		gatewayErrorSeg|2,
-		ErrorLevelFatal,
-		"it is already running",
-	)
-
-	// ErrGateWaySessionNotFound ...
-	ErrGateWaySessionNotFound = DefineConfigError(
-		gatewayErrorSeg|3,
-		ErrorLevelWarn,
-		"session not found",
-	)
-
-	// ErrGateWaySeedOverflows ...
-	ErrGateWaySeedOverflows = DefineConfigError(
-		gatewayErrorSeg|4,
-		ErrorLevelWarn,
-		"gateway seed overflows",
-	)
-)
-
 const serverErrorSeg = 3 << 8
 
 var (
@@ -286,6 +254,27 @@ var (
 		serverErrorSeg|2,
 		ErrorLevelFatal,
 		"it is not running",
+	)
+
+	// ErrServerNoListenersAvailable ...
+	ErrServerNoListenersAvailable = DefineConfigError(
+		serverErrorSeg|3,
+		ErrorLevelFatal,
+		"no listeners available on the server",
+	)
+
+	// ErrServerSessionNotFound ...
+	ErrServerSessionNotFound = DefineConfigError(
+		serverErrorSeg|4,
+		ErrorLevelWarn,
+		"server session not found",
+	)
+
+	// ErrServerSessionSeedOverflows ...
+	ErrServerSessionSeedOverflows = DefineConfigError(
+		serverErrorSeg|5,
+		ErrorLevelWarn,
+		"server session seed overflows",
 	)
 )
 
