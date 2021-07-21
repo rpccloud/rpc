@@ -5,10 +5,6 @@ import (
 )
 
 type StreamHubCallback struct {
-	OnConnectRequestStream    func(stream *Stream)
-	OnConnectResponseStream   func(stream *Stream)
-	OnPingStream              func(stream *Stream)
-	OnPongStream              func(stream *Stream)
 	OnRPCRequestStream        func(stream *Stream)
 	OnRPCResponseOKStream     func(stream *Stream)
 	OnRPCResponseErrorStream  func(stream *Stream)
@@ -50,14 +46,6 @@ func (p *StreamHub) OnReceiveStream(stream *Stream) {
 	if stream != nil {
 		fn := (func(stream *Stream))(nil)
 		switch stream.GetKind() {
-		case StreamKindConnectRequest:
-			fn = p.callback.OnConnectRequestStream
-		case StreamKindConnectResponse:
-			fn = p.callback.OnConnectResponseStream
-		case StreamKindPing:
-			fn = p.callback.OnPingStream
-		case StreamKindPong:
-			fn = p.callback.OnPongStream
 		case StreamKindRPCRequest:
 			fn = p.callback.OnRPCRequestStream
 		case StreamKindRPCResponseOK:
@@ -73,6 +61,11 @@ func (p *StreamHub) OnReceiveStream(stream *Stream) {
 			if err.GetLevel()&p.logLevel == 0 {
 				return
 			}
+
+			p.logger.Log(err.ReportString(
+				stream.GetSourceID(),
+				stream.GetSessionID(),
+			))
 
 			if p.callback.OnSystemErrorReportStream != nil {
 				p.callback.OnSystemErrorReportStream(stream.GetSessionID(), err)

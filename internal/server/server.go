@@ -12,60 +12,33 @@ import (
 	"github.com/rpccloud/rpc/internal/rpc"
 )
 
-const (
-	defaultMaxNumOfThreads  = 1024 * 1024
-	defaultThreadsPerCPU    = 16384
-	defaultThreadBufferSize = 2048
-	defaultCloseTimeout     = 5 * time.Second
-	defaultMaxNodeDepth     = 128
-	defaultMaxCallDepth     = 128
-)
-
-var fnNumCPU = runtime.NumCPU
-
 // Server ...
 type Server struct {
-	isRunning        bool
-	processor        *rpc.Processor
-	sessionServer    *SessionServer
-	numOfThreads     int
-	maxNodeDepth     int16
-	maxCallDepth     int16
-	threadBufferSize uint32
-	actionCache      rpc.ActionCache
-	closeTimeout     time.Duration
-	mountServices    []*rpc.ServiceMeta
-	logReceiver      rpc.IStreamReceiver
+	config        *ServerConfig
+	listeners     []*listener
+	processor     *rpc.Processor
+	sessionServer *SessionServer
+	streamHub     *rpc.StreamHub
+	mountServices []*rpc.ServiceMeta
 	sync.Mutex
 }
 
 // NewServer ...
-func NewServer(logReceiver rpc.IStreamReceiver) *Server {
-	if logReceiver == nil {
-		logReceiver = rpc.NewLogToScreenErrorStreamReceiver("Server")
+func NewServer(config *ServerConfig) *Server {
+	if config == nil {
+		config = GetDefaultServerConfig()
+	} else {
+		config = config.clone()
 	}
 
-	ret := &Server{
-		isRunning:        false,
-		processor:        nil,
-		sessionServer:    nil,
-		numOfThreads:     fnNumCPU() * defaultThreadsPerCPU,
-		maxNodeDepth:     defaultMaxNodeDepth,
-		maxCallDepth:     defaultMaxCallDepth,
-		threadBufferSize: defaultThreadBufferSize,
-		actionCache:      nil,
-		closeTimeout:     defaultCloseTimeout,
-		mountServices:    make([]*rpc.ServiceMeta, 0),
-		logReceiver:      logReceiver,
+	return &Server{
+		config:        config,
+		listeners:     make([]*listener, 0),
+		processor:     nil,
+		sessionServer: nil,
+		streamHub:     nil,
+		mountServices: make([]*rpc.ServiceMeta, 0),
 	}
-
-	if ret.numOfThreads > defaultMaxNumOfThreads {
-		ret.numOfThreads = defaultMaxNumOfThreads
-	}
-
-	ret.sessionServer = NewSessionServer(GetDefaultSessionConfig(), ret)
-
-	return ret
 }
 
 // Listen ...
@@ -74,7 +47,22 @@ func (p *Server) Listen(
 	addr string,
 	tlsConfig *tls.Config,
 ) *Server {
-	p.sessionServer.Listen(network, addr, tlsConfig)
+	p.Lock()
+	defer p.Unlock()
+
+	if p.streamHub == nil {
+		p.listeners = append(p.listeners, &listener{
+			isDebug:   false,
+			network:   network,
+			addr:      addr,
+			tlsConfig: tlsConfig,
+		})
+	} else {
+		p.streamHub.OnReceiveStream(rpc.MakeSystemErrorStream(
+			base.ErrServerAlreadyRunning.AddDebug(base.GetFileLine(1)),
+		))
+	}
+
 	return p
 }
 
@@ -84,77 +72,20 @@ func (p *Server) ListenWithDebug(
 	addr string,
 	tlsConfig *tls.Config,
 ) *Server {
-	p.sessionServer.ListenWithDebug(network, addr, tlsConfig)
-	return p
-}
-
-// SetNumOfThreads ...
-func (p *Server) SetNumOfThreads(numOfThreads int) *Server {
 	p.Lock()
 	defer p.Unlock()
 
-	if p.isRunning {
-		p.OnReceiveStream(rpc.MakeSystemErrorStream(
+	if p.streamHub == nil {
+		p.listeners = append(p.listeners, &listener{
+			isDebug:   true,
+			network:   network,
+			addr:      addr,
+			tlsConfig: tlsConfig,
+		})
+	} else {
+		p.streamHub.OnReceiveStream(rpc.MakeSystemErrorStream(
 			base.ErrServerAlreadyRunning.AddDebug(base.GetFileLine(1)),
 		))
-	} else if numOfThreads <= 0 {
-		p.OnReceiveStream(rpc.MakeSystemErrorStream(
-			base.ErrNumOfThreadsIsWrong.AddDebug(base.GetFileLine(1)),
-		))
-	} else {
-		p.numOfThreads = numOfThreads
-	}
-
-	return p
-}
-
-// SetThreadBufferSize ...
-func (p *Server) SetThreadBufferSize(threadBufferSize uint32) *Server {
-	p.Lock()
-	defer p.Unlock()
-
-	if p.isRunning {
-		p.OnReceiveStream(rpc.MakeSystemErrorStream(
-			base.ErrServerAlreadyRunning.AddDebug(base.GetFileLine(1)),
-		))
-	} else if threadBufferSize <= 0 {
-		p.OnReceiveStream(rpc.MakeSystemErrorStream(
-			base.ErrThreadBufferSizeIsWrong.AddDebug(base.GetFileLine(1)),
-		))
-	} else {
-		p.threadBufferSize = threadBufferSize
-	}
-
-	return p
-}
-
-// SetActionCache ...
-func (p *Server) SetActionCache(actionCache rpc.ActionCache) *Server {
-	p.Lock()
-	defer p.Unlock()
-
-	if p.isRunning {
-		p.OnReceiveStream(rpc.MakeSystemErrorStream(
-			base.ErrServerAlreadyRunning.AddDebug(base.GetFileLine(1)),
-		))
-	} else {
-		p.actionCache = actionCache
-	}
-
-	return p
-}
-
-// SetLogReceiver ...
-func (p *Server) SetLogReceiver(logReceiver rpc.IStreamReceiver) *Server {
-	p.Lock()
-	defer p.Unlock()
-
-	if p.isRunning {
-		p.OnReceiveStream(rpc.MakeSystemErrorStream(
-			base.ErrServerAlreadyRunning.AddDebug(base.GetFileLine(1)),
-		))
-	} else {
-		p.logReceiver = logReceiver
 	}
 
 	return p
@@ -169,16 +100,16 @@ func (p *Server) AddService(
 	p.Lock()
 	defer p.Unlock()
 
-	if p.isRunning {
-		p.OnReceiveStream(rpc.MakeSystemErrorStream(
-			base.ErrServerAlreadyRunning.AddDebug(base.GetFileLine(1)),
-		))
-	} else {
+	if p.streamHub == nil {
 		p.mountServices = append(p.mountServices, rpc.NewServiceMeta(
 			name,
 			service,
 			base.GetFileLine(1),
 			data,
+		))
+	} else {
+		p.streamHub.OnReceiveStream(rpc.MakeSystemErrorStream(
+			base.ErrServerAlreadyRunning.AddDebug(base.GetFileLine(1)),
 		))
 	}
 
@@ -186,7 +117,7 @@ func (p *Server) AddService(
 }
 
 // BuildReplyCache ...
-func (p *Server) BuildReplyCache() *Server {
+func (p *Server) BuildReplyCache() *base.Error {
 	p.Lock()
 	defer p.Unlock()
 
@@ -205,36 +136,10 @@ func (p *Server) BuildReplyCache() *Server {
 	)
 	defer processor.Close()
 
-	if err := processor.BuildCache(
+	return processor.BuildCache(
 		"cache",
 		path.Join(buildDir, "cache", "rpc_action_cache.go"),
-	); err != nil {
-		p.OnReceiveStream(rpc.MakeSystemErrorStream(err))
-	}
-
-	return p
-}
-
-// OnReceiveStream ...
-func (p *Server) OnReceiveStream(stream *rpc.Stream) {
-	if stream != nil {
-		switch stream.GetKind() {
-		case rpc.StreamKindRPCRequest:
-			p.processor.PutStream(stream)
-		case rpc.StreamKindRPCResponseOK:
-			fallthrough
-		case rpc.StreamKindRPCResponseError:
-			fallthrough
-		case rpc.StreamKindRPCBoardCast:
-			p.sessionServer.OutStream(stream)
-		default:
-			if stream.GetKind() == rpc.StreamKindSystemErrorReport {
-				p.logReceiver.OnReceiveStream(stream)
-			} else {
-				stream.Release()
-			}
-		}
-	}
+	)
 }
 
 // Open ...
@@ -245,27 +150,69 @@ func (p *Server) Open() bool {
 		p.Lock()
 		defer p.Unlock()
 
-		if p.isRunning {
-			p.OnReceiveStream(rpc.MakeSystemErrorStream(
+		if p.streamHub != nil {
+			p.streamHub.OnReceiveStream(rpc.MakeSystemErrorStream(
 				base.ErrServerAlreadyRunning.AddDebug(source),
 			))
 			return false
-		} else if processor := rpc.NewProcessor(
-			p.numOfThreads,
-			p.maxNodeDepth,
-			p.maxCallDepth,
-			p.threadBufferSize,
-			p.actionCache,
-			p.closeTimeout,
-			p.mountServices,
-			p,
-		); processor == nil {
-			return false
-		} else {
-			p.isRunning = true
-			p.processor = processor
-			return true
 		}
+
+		processor := (*rpc.Processor)(nil)
+		sessionServer := (*SessionServer)(nil)
+
+		streamHub := rpc.NewStreamHub(
+			p.config.isLogToScreen,
+			p.config.logFile,
+			p.config.logLevel,
+			rpc.StreamHubCallback{
+				OnRPCRequestStream: func(stream *rpc.Stream) {
+					processor.PutStream(stream)
+				},
+				OnRPCResponseOKStream: func(stream *rpc.Stream) {
+					sessionServer.OutStream(stream)
+				},
+				OnRPCResponseErrorStream: func(stream *rpc.Stream) {
+					sessionServer.OutStream(stream)
+				},
+				OnRPCBoardCastStream: func(stream *rpc.Stream) {
+					sessionServer.OutStream(stream)
+				},
+				OnSystemErrorReportStream: func(
+					sessionID uint64,
+					err *base.Error,
+				) {
+					// ignore
+				},
+			},
+		)
+
+		processor = rpc.NewProcessor(
+			p.config.numOfThreads,
+			p.config.maxNodeDepth,
+			p.config.maxCallDepth,
+			p.config.threadBufferSize,
+			p.config.actionCache,
+			p.config.closeTimeout,
+			p.mountServices,
+			streamHub,
+		)
+
+		if processor == nil {
+			streamHub.Close()
+			return false
+		}
+
+		sessionServer = NewSessionServer(
+			p.listeners,
+			p.config.session,
+			streamHub,
+		)
+
+		p.streamHub = streamHub
+		p.processor = processor
+		p.sessionServer = sessionServer
+
+		return true
 	}()
 
 	if ret {
@@ -280,7 +227,7 @@ func (p *Server) IsRunning() bool {
 	p.Lock()
 	defer p.Unlock()
 
-	return p.isRunning
+	return p.streamHub != nil
 }
 
 // Close ...
@@ -288,16 +235,21 @@ func (p *Server) Close() bool {
 	p.Lock()
 	defer p.Unlock()
 
-	if !p.isRunning {
-		p.OnReceiveStream(rpc.MakeSystemErrorStream(
-			base.ErrServerNotRunning.AddDebug(base.GetFileLine(1)),
-		))
+	if p.streamHub == nil {
 		return false
 	}
 
-	p.sessionServer.Close()
-	p.processor.Close()
-	p.processor = nil
-	p.isRunning = false
+	if p.sessionServer != nil {
+		p.sessionServer.Close()
+		p.sessionServer = nil
+	}
+
+	if p.processor != nil {
+		p.processor.Close()
+		p.processor = nil
+	}
+
+	p.streamHub.Close()
+	p.streamHub = nil
 	return true
 }

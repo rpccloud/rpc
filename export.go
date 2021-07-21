@@ -75,12 +75,20 @@ func NewService() *Service {
 // Server ...
 type Server = server.Server
 
+// ServerConfig ...
+type ServerConfig = server.ServerConfig
+
+// GetDefaultServerConfig ...
+func GetDefaultServerConfig() *ServerConfig {
+	return server.GetDefaultServerConfig()
+}
+
 // IStreamReceiver ...
 type IStreamReceiver = rpc.IStreamReceiver
 
 // NewServer ...
-func NewServer(logReceiver IStreamReceiver) *Server {
-	return server.NewServer(logReceiver)
+func NewServer(config *ServerConfig) *Server {
+	return server.NewServer(config)
 }
 
 // Client ...

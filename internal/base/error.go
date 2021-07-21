@@ -36,6 +36,11 @@ const (
 	ErrorLevelError = ErrorLevel(1 << 2)
 	// ErrorLevelFatal ...
 	ErrorLevelFatal = ErrorLevel(1 << 3)
+	// ErrorLogAll ...
+	ErrorLogAll = ErrorLevelInfo |
+		ErrorLevelWarn |
+		ErrorLevelError |
+		ErrorLevelFatal
 )
 
 // ErrorIndex ...

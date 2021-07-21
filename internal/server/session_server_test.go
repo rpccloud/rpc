@@ -1,7 +1,6 @@
 package server
 
 import (
-	"crypto/tls"
 	"fmt"
 	"net"
 	"testing"
@@ -18,7 +17,7 @@ func newSession(id uint64, sessionServer *SessionServer) *Session {
 		sessionServer: sessionServer,
 		security:      base.GetRandString(32),
 		conn:          nil,
-		channels:      make([]Channel, sessionServer.sessionConfig.numOfChannels),
+		channels:      make([]Channel, sessionServer.config.numOfChannels),
 		activeTimeNS:  base.TimeNow().UnixNano(),
 		prev:          nil,
 		next:          nil,
@@ -71,8 +70,14 @@ func (p *testNetConn) SetWriteDeadline(_ time.Time) error {
 	panic("not implemented")
 }
 
-func prepareTestSession() (*Session, adapter.IConn, *testNetConn) {
-	sessionServer := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+func prepareTestSession(
+	listeners []*listener,
+) (*Session, adapter.IConn, *testNetConn) {
+	sessionServer := NewSessionServer(
+		listeners,
+		GetDefaultSessionConfig(),
+		rpc.NewTestStreamReceiver(),
+	)
 	session := newSession(11, sessionServer)
 	netConn := newTestNetConn()
 	syncConn := adapter.NewServerSyncConn(netConn, 1200, 1200)
@@ -115,7 +120,7 @@ func checkSessionList(head *Session) bool {
 
 func testTimeCheck(pos int) bool {
 	nowNS := base.TimeNow().UnixNano()
-	v := NewSessionPool(&SessionServer{sessionConfig: GetDefaultSessionConfig()})
+	v := NewSessionPool(&SessionServer{config: GetDefaultSessionConfig()})
 
 	s1 := &Session{id: 1, activeTimeNS: nowNS}
 	s2 := &Session{id: 2, activeTimeNS: nowNS}
@@ -147,22 +152,6 @@ func testTimeCheck(pos int) bool {
 	return v.sessionServer.totalSessions == 2 &&
 		v.head == firstSession &&
 		checkSessionList(v.head)
-}
-
-func TestGetDefaultSessionConfig(t *testing.T) {
-	t.Run("test", func(t *testing.T) {
-		assert := base.NewAssert(t)
-		cfg := GetDefaultSessionConfig()
-		assert(cfg.numOfChannels).Equal(32)
-		assert(cfg.transLimit).Equal(4 * 1024 * 1024)
-		assert(cfg.heartbeat).Equal(4 * time.Second)
-		assert(cfg.heartbeatTimeout).Equal(8 * time.Second)
-		assert(cfg.serverMaxSessions).Equal(10240000)
-		assert(cfg.serverSessionTimeout).Equal(120 * time.Second)
-		assert(cfg.serverReadBufferSize).Equal(1200)
-		assert(cfg.serverWriteBufferSize).Equal(1200)
-		assert(cfg.serverCacheTimeout).Equal(10 * time.Second)
-	})
 }
 
 func TestChannel_In(t *testing.T) {
@@ -288,7 +277,9 @@ func TestInitSession(t *testing.T) {
 		assert := base.NewAssert(t)
 		netConn := newTestNetConn()
 		streamReceiver := rpc.NewTestStreamReceiver()
-		sessionServer := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		sessionServer := NewSessionServer(
+			nil, GetDefaultSessionConfig(), streamReceiver,
+		)
 
 		streamConn := adapter.NewStreamConn(
 			false,
@@ -310,7 +301,9 @@ func TestInitSession(t *testing.T) {
 		assert := base.NewAssert(t)
 		netConn := newTestNetConn()
 		streamReceiver := rpc.NewTestStreamReceiver()
-		sessionServer := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		sessionServer := NewSessionServer(
+			nil, GetDefaultSessionConfig(), streamReceiver,
+		)
 
 		streamConn := adapter.NewStreamConn(
 			false,
@@ -331,7 +324,9 @@ func TestInitSession(t *testing.T) {
 		assert := base.NewAssert(t)
 		netConn := newTestNetConn()
 		streamReceiver := rpc.NewTestStreamReceiver()
-		sessionServer := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		sessionServer := NewSessionServer(
+			nil, GetDefaultSessionConfig(), streamReceiver,
+		)
 
 		streamConn := adapter.NewStreamConn(
 			false,
@@ -353,7 +348,9 @@ func TestInitSession(t *testing.T) {
 		assert := base.NewAssert(t)
 		netConn := newTestNetConn()
 		streamReceiver := rpc.NewTestStreamReceiver()
-		sessionServer := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		sessionServer := NewSessionServer(
+			nil, GetDefaultSessionConfig(), streamReceiver,
+		)
 
 		streamConn := adapter.NewStreamConn(
 			false,
@@ -375,8 +372,10 @@ func TestInitSession(t *testing.T) {
 	t.Run("max sessions limit", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := rpc.NewTestStreamReceiver()
-		sessionServer := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
-		sessionServer.sessionConfig.serverMaxSessions = 1
+		sessionServer := NewSessionServer(
+			nil, GetDefaultSessionConfig(), streamReceiver,
+		)
+		sessionServer.config.serverMaxSessions = 1
 		sessionServer.AddSession(&Session{
 			id:       234,
 			security: "12345678123456781234567812345678",
@@ -429,7 +428,9 @@ func TestInitSession(t *testing.T) {
 		}
 
 		for connStr, exist := range testCollection {
-			sessionServer := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+			sessionServer := NewSessionServer(
+				nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
+			)
 			sessionServer.AddSession(&Session{id: id, security: security, sessionServer: sessionServer})
 			netConn := newTestNetConn()
 			syncConn := adapter.NewServerSyncConn(netConn, 1200, 1200)
@@ -462,18 +463,18 @@ func TestInitSession(t *testing.T) {
 				rs := rpc.NewStream()
 				rs.PutBytesTo(netConn.writeBuffer, 0)
 
-				sessionConfig := sessionServer.sessionConfig
+				config := sessionServer.config
 
 				assert(rs.GetKind()).
 					Equal(uint8(rpc.StreamKindConnectResponse))
 				assert(rs.ReadString()).
 					Equal(fmt.Sprintf("%d-%s", v.id, v.security), nil)
-				assert(rs.ReadInt64()).Equal(int64(sessionConfig.numOfChannels), nil)
-				assert(rs.ReadInt64()).Equal(int64(sessionConfig.transLimit), nil)
+				assert(rs.ReadInt64()).Equal(int64(config.numOfChannels), nil)
+				assert(rs.ReadInt64()).Equal(int64(config.transLimit), nil)
 				assert(rs.ReadInt64()).
-					Equal(int64(sessionConfig.heartbeat/time.Millisecond), nil)
+					Equal(int64(config.heartbeatInterval/time.Millisecond), nil)
 				assert(rs.ReadInt64()).
-					Equal(int64(sessionConfig.heartbeatTimeout/time.Millisecond), nil)
+					Equal(int64(config.heartbeatTimeout/time.Millisecond), nil)
 				assert(rs.IsReadFinish()).IsTrue()
 				assert(rs.CheckStream()).IsTrue()
 			}
@@ -484,7 +485,10 @@ func TestInitSession(t *testing.T) {
 func TestNewSession(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		sessionServer := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+
+		sessionServer := NewSessionServer(
+			nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
+		)
 		v := newSession(3, sessionServer)
 		assert(v.id).Equal(uint64(3))
 		assert(v.sessionServer).Equal(sessionServer)
@@ -502,8 +506,8 @@ func TestNewSession(t *testing.T) {
 func TestSession_TimeCheck(t *testing.T) {
 	t.Run("p.conn is active", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
-		session.sessionServer.sessionConfig.heartbeatTimeout = 100 * time.Millisecond
+		session, syncConn, netConn := prepareTestSession(nil)
+		session.sessionServer.config.heartbeatTimeout = 100 * time.Millisecond
 		syncConn.OnOpen()
 		session.TimeCheck(base.TimeNow().UnixNano())
 		assert(netConn.isRunning).IsTrue()
@@ -512,8 +516,8 @@ func TestSession_TimeCheck(t *testing.T) {
 
 	t.Run("p.conn is not active", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
-		session.sessionServer.sessionConfig.heartbeatTimeout = 1 * time.Millisecond
+		session, syncConn, netConn := prepareTestSession(nil)
+		session.sessionServer.config.heartbeatTimeout = 1 * time.Millisecond
 		syncConn.OnOpen()
 		time.Sleep(30 * time.Millisecond)
 		session.TimeCheck(base.TimeNow().UnixNano())
@@ -522,16 +526,16 @@ func TestSession_TimeCheck(t *testing.T) {
 
 	t.Run("p.conn is nil, session is not timeout", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, _, _ := prepareTestSession()
-		session.sessionServer.sessionConfig.serverSessionTimeout = time.Second
+		session, _, _ := prepareTestSession(nil)
+		session.sessionServer.config.serverSessionTimeout = time.Second
 		session.sessionServer.TimeCheck(base.TimeNow().UnixNano())
 		assert(session.sessionServer.TotalSessions()).Equal(int64(1))
 	})
 
 	t.Run("p.conn is nil, session is timeout", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, _, _ := prepareTestSession()
-		session.sessionServer.sessionConfig.serverSessionTimeout = 1 * time.Millisecond
+		session, _, _ := prepareTestSession(nil)
+		session.sessionServer.config.serverSessionTimeout = 1 * time.Millisecond
 		time.Sleep(30 * time.Millisecond)
 		session.sessionServer.TimeCheck(base.TimeNow().UnixNano())
 		assert(session.sessionServer.TotalSessions()).Equal(int64(0))
@@ -539,10 +543,10 @@ func TestSession_TimeCheck(t *testing.T) {
 
 	t.Run("p.channels is not timeout", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, _, _ := prepareTestSession()
+		session, _, _ := prepareTestSession(nil)
 
 		// fill the channels
-		for i := 0; i < session.sessionServer.sessionConfig.numOfChannels; i++ {
+		for i := 0; i < session.sessionServer.config.numOfChannels; i++ {
 			stream := rpc.NewStream()
 			stream.SetCallbackID(uint64(i) + 1)
 			session.channels[i].In(stream.GetCallbackID())
@@ -551,10 +555,10 @@ func TestSession_TimeCheck(t *testing.T) {
 			assert(session.channels[i].backStream).IsNotNil()
 		}
 
-		session.sessionServer.sessionConfig.serverCacheTimeout = 10 * time.Millisecond
+		session.sessionServer.config.serverCacheTimeout = 10 * time.Millisecond
 		session.TimeCheck(base.TimeNow().UnixNano())
 
-		for i := 0; i < session.sessionServer.sessionConfig.numOfChannels; i++ {
+		for i := 0; i < session.sessionServer.config.numOfChannels; i++ {
 			assert(session.channels[i].backTimeNS > 0).IsTrue()
 			assert(session.channels[i].backStream).IsNotNil()
 		}
@@ -562,21 +566,21 @@ func TestSession_TimeCheck(t *testing.T) {
 
 	t.Run("p.channels is timeout", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, _, _ := prepareTestSession()
+		session, _, _ := prepareTestSession(nil)
 
 		// fill the channels
-		for i := 0; i < session.sessionServer.sessionConfig.numOfChannels; i++ {
+		for i := 0; i < session.sessionServer.config.numOfChannels; i++ {
 			stream := rpc.NewStream()
 			stream.SetCallbackID(uint64(i) + 1)
 			session.channels[i].In(stream.GetCallbackID())
 			session.channels[i].Out(stream)
 		}
 
-		session.sessionServer.sessionConfig.serverCacheTimeout = 1 * time.Millisecond
+		session.sessionServer.config.serverCacheTimeout = 1 * time.Millisecond
 		time.Sleep(30 * time.Millisecond)
 		session.TimeCheck(base.TimeNow().UnixNano())
 
-		for i := 0; i < session.sessionServer.sessionConfig.numOfChannels; i++ {
+		for i := 0; i < session.sessionServer.config.numOfChannels; i++ {
 			assert(session.channels[i].backTimeNS).Equal(int64(0))
 			assert(session.channels[i].backStream).IsNil()
 		}
@@ -586,14 +590,14 @@ func TestSession_TimeCheck(t *testing.T) {
 func TestSession_OutStream(t *testing.T) {
 	t.Run("stream is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, _, netConn := prepareTestSession()
+		session, _, netConn := prepareTestSession(nil)
 		session.OutStream(nil)
 		assert(len(netConn.writeBuffer)).Equal(0)
 	})
 
 	t.Run("p.conn is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, _, netConn := prepareTestSession()
+		session, _, netConn := prepareTestSession(nil)
 		stream := rpc.NewStream()
 		stream.SetKind(rpc.StreamKindRPCResponseOK)
 		session.OutStream(stream)
@@ -603,7 +607,7 @@ func TestSession_OutStream(t *testing.T) {
 
 	t.Run("stream kind error", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
+		session, syncConn, netConn := prepareTestSession(nil)
 		syncConn.OnOpen()
 		// ignore the init stream
 		netConn.writeBuffer = make([]byte, 0)
@@ -624,7 +628,7 @@ func TestSession_OutStream(t *testing.T) {
 
 	t.Run("stream can not out", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
+		session, syncConn, netConn := prepareTestSession(nil)
 		syncConn.OnOpen()
 		// ignore the init stream
 		netConn.writeBuffer = make([]byte, 0)
@@ -645,7 +649,7 @@ func TestSession_OutStream(t *testing.T) {
 
 	t.Run("stream can out", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
+		session, syncConn, netConn := prepareTestSession(nil)
 		syncConn.OnOpen()
 		// ignore the init stream
 		netConn.writeBuffer = make([]byte, 0)
@@ -669,7 +673,7 @@ func TestSession_OutStream(t *testing.T) {
 
 	t.Run("stream is StreamKindRPCBoardCast", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
+		session, syncConn, netConn := prepareTestSession(nil)
 		syncConn.OnOpen()
 		// ignore the init stream
 		netConn.writeBuffer = make([]byte, 0)
@@ -697,7 +701,7 @@ func TestSession_OutStream(t *testing.T) {
 func TestSession_OnConnOpen(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, _ := prepareTestSession()
+		session, syncConn, _ := prepareTestSession(nil)
 		streamConn := adapter.NewStreamConn(false, syncConn, session)
 		syncConn.SetNext(streamConn)
 		session.OnConnOpen(streamConn)
@@ -708,7 +712,7 @@ func TestSession_OnConnOpen(t *testing.T) {
 func TestSession_OnConnReadStream(t *testing.T) {
 	t.Run("cbID == 0, kind == StreamKindPing ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
+		session, syncConn, netConn := prepareTestSession(nil)
 		syncConn.OnOpen()
 		netConn.writeBuffer = make([]byte, 0)
 		streamConn := adapter.NewStreamConn(false, syncConn, session)
@@ -724,7 +728,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 
 	t.Run("cbID == 0, kind == StreamKindPing error", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
+		session, syncConn, netConn := prepareTestSession(nil)
 		syncConn.OnOpen()
 		netConn.writeBuffer = make([]byte, 0)
 		streamConn := adapter.NewStreamConn(false, syncConn, session)
@@ -744,7 +748,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 		assert := base.NewAssert(t)
 
 		streamReceiver := rpc.NewTestStreamReceiver()
-		session, syncConn, _ := prepareTestSession()
+		session, syncConn, _ := prepareTestSession(nil)
 		session.sessionServer.streamReceiver = streamReceiver
 
 		streamConn := adapter.NewStreamConn(false, syncConn, session)
@@ -759,7 +763,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 
 	t.Run("cbID > 0, accept = false, backStream != nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
+		session, syncConn, netConn := prepareTestSession(nil)
 
 		cacheStream := rpc.NewStream()
 		cacheStream.SetCallbackID(10)
@@ -782,7 +786,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 
 	t.Run("cbID > 0, accept = false, backStream == nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, netConn := prepareTestSession()
+		session, syncConn, netConn := prepareTestSession(nil)
 
 		streamConn := adapter.NewStreamConn(false, syncConn, session)
 		syncConn.SetNext(streamConn)
@@ -799,7 +803,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 
 	t.Run("cbID == 0, accept = true, backStream = nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, _ := prepareTestSession()
+		session, syncConn, _ := prepareTestSession(nil)
 		streamReceiver := rpc.NewTestStreamReceiver()
 		session.sessionServer.streamReceiver = streamReceiver
 
@@ -815,7 +819,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 
 	t.Run("cbID == 0, kind err", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, _ := prepareTestSession()
+		session, syncConn, _ := prepareTestSession(nil)
 		streamConn := adapter.NewStreamConn(false, syncConn, session)
 		streamReceiver := rpc.NewTestStreamReceiver()
 		session.sessionServer.streamReceiver = streamReceiver
@@ -828,7 +832,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 func TestSession_OnConnError(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, _ := prepareTestSession()
+		session, syncConn, _ := prepareTestSession(nil)
 		streamConn := adapter.NewStreamConn(false, syncConn, session)
 		streamReceiver := rpc.NewTestStreamReceiver()
 		session.sessionServer.streamReceiver = streamReceiver
@@ -841,7 +845,7 @@ func TestSession_OnConnError(t *testing.T) {
 func TestSession_OnConnClose(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		session, syncConn, _ := prepareTestSession()
+		session, syncConn, _ := prepareTestSession(nil)
 		streamConn := adapter.NewStreamConn(false, syncConn, session)
 		session.OnConnOpen(streamConn)
 		assert(session.conn).IsNotNil()
@@ -932,7 +936,7 @@ func TestSessionPool_TimeCheck(t *testing.T) {
 func TestSessionServerBasic(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(sessionManagerVectorSize).Equal(1024)
+		assert(1024).Equal(1024)
 	})
 }
 
@@ -940,28 +944,28 @@ func TestNewSessionServer(t *testing.T) {
 	t.Run("streamReceiver is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(base.RunWithCatchPanic(func() {
-			NewSessionServer(GetDefaultSessionConfig(), nil)
+			NewSessionServer(nil, GetDefaultSessionConfig(), nil)
 		})).Equal("streamReceiver is nil")
 	})
 
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := rpc.NewTestStreamReceiver()
-		v := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		v := NewSessionServer(nil, GetDefaultSessionConfig(), streamReceiver)
 		assert(v.isRunning).Equal(false)
 		assert(v.sessionSeed).Equal(uint64(0))
 		assert(v.totalSessions).Equal(int64(0))
-		assert(len(v.sessionMapList)).Equal(sessionManagerVectorSize)
-		assert(cap(v.sessionMapList)).Equal(sessionManagerVectorSize)
+		assert(len(v.sessionMapList)).Equal(1024)
+		assert(cap(v.sessionMapList)).Equal(1024)
 		assert(v.streamReceiver).Equal(streamReceiver)
 		assert(len(v.closeCH)).Equal(0)
 		assert(cap(v.closeCH)).Equal(1)
-		assert(v.sessionConfig).Equal(GetDefaultSessionConfig())
+		assert(v.config).Equal(GetDefaultSessionConfig())
 		assert(len(v.adapters)).Equal(0)
 		assert(cap(v.adapters)).Equal(0)
 		assert(v.orcManager).IsNotNil()
 
-		for i := 0; i < sessionManagerVectorSize; i++ {
+		for i := 0; i < 1024; i++ {
 			assert(v.sessionMapList[i]).IsNotNil()
 		}
 	})
@@ -970,7 +974,9 @@ func TestNewSessionServer(t *testing.T) {
 func TestSessionServer_TotalSessions(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+		v := NewSessionServer(
+			nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
+		)
 		v.totalSessions = 54321
 		assert(v.TotalSessions()).Equal(int64(54321))
 	})
@@ -979,7 +985,9 @@ func TestSessionServer_TotalSessions(t *testing.T) {
 func TestSessionServer_AddSession(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+		v := NewSessionServer(
+			nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
+		)
 
 		for i := uint64(1); i < 100; i++ {
 			session := newSession(i, v)
@@ -996,7 +1004,9 @@ func TestSessionServer_AddSession(t *testing.T) {
 func TestSessionServer_GetSession(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+		v := NewSessionServer(
+			nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
+		)
 
 		for i := uint64(1); i < 100; i++ {
 			session := newSession(i, v)
@@ -1020,7 +1030,9 @@ func TestSessionServer_GetSession(t *testing.T) {
 func TestSessionServer_CreateSessionID(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+		v := NewSessionServer(
+			nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
+		)
 		assert(v.CreateSessionID()).Equal(uint64(1))
 		assert(v.CreateSessionID()).Equal(uint64(2))
 	})
@@ -1029,82 +1041,64 @@ func TestSessionServer_CreateSessionID(t *testing.T) {
 func TestSessionServer_TimeCheck(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
-		for i := uint64(1); i <= sessionManagerVectorSize; i++ {
+		v := NewSessionServer(
+			nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
+		)
+		for i := uint64(1); i <= 1024; i++ {
 			session := newSession(i, v)
 			session.activeTimeNS = 0
 			assert(v.AddSession(session)).IsTrue()
 		}
 
-		assert(v.TotalSessions()).Equal(int64(sessionManagerVectorSize))
+		assert(v.TotalSessions()).Equal(int64(1024))
 		v.TimeCheck(base.TimeNow().UnixNano())
 		assert(v.TotalSessions()).Equal(int64(0))
 	})
 }
 
-func TestSessionServer_Listen(t *testing.T) {
-	t.Run("SessionServer is running", func(t *testing.T) {
-		assert := base.NewAssert(t)
-		streamReceiver := rpc.NewTestStreamReceiver()
-		v := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
-		v.isRunning = true
-		assert(v.Listen("tcp", "0.0.0.0:8080", nil)).Equal(v)
-		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrServerAlreadyRunning)
-	})
+// func TestSessionServer_Listen(t *testing.T) {
+// 	t.Run("SessionServer is not running", func(t *testing.T) {
+// 		assert := base.NewAssert(t)
+// 		tlsConfig := &tls.Config{}
+// 		v := NewSessionServer(nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+// 		assert(v.Listen("tcp", "0.0.0.0:8080", tlsConfig)).Equal(v)
+// 		assert(len(v.adapters)).Equal(1)
+// 		assert(v.adapters[0]).Equal(adapter.NewServerAdapter(
+// 			false,
+// 			"tcp",
+// 			"0.0.0.0:8080",
+// 			tlsConfig,
+// 			v.sessionConfig.serverReadBufferSize,
+// 			v.sessionConfig.serverWriteBufferSize,
+// 			v,
+// 		))
+// 	})
+// }
 
-	t.Run("SessionServer is not running", func(t *testing.T) {
-		assert := base.NewAssert(t)
-		tlsConfig := &tls.Config{}
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
-		assert(v.Listen("tcp", "0.0.0.0:8080", tlsConfig)).Equal(v)
-		assert(len(v.adapters)).Equal(1)
-		assert(v.adapters[0]).Equal(adapter.NewServerAdapter(
-			false,
-			"tcp",
-			"0.0.0.0:8080",
-			tlsConfig,
-			v.sessionConfig.serverReadBufferSize,
-			v.sessionConfig.serverWriteBufferSize,
-			v,
-		))
-	})
-}
-
-func TestSessionServer_ListenWithDebug(t *testing.T) {
-	t.Run("SessionServer is running", func(t *testing.T) {
-		assert := base.NewAssert(t)
-		streamReceiver := rpc.NewTestStreamReceiver()
-		v := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
-		v.isRunning = true
-		assert(v.ListenWithDebug("tcp", "0.0.0.0:8080", nil)).Equal(v)
-		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrServerAlreadyRunning)
-	})
-
-	t.Run("SessionServer is not running", func(t *testing.T) {
-		assert := base.NewAssert(t)
-		tlsConfig := &tls.Config{}
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
-		assert(v.ListenWithDebug("tcp", "0.0.0.0:8080", tlsConfig)).Equal(v)
-		assert(len(v.adapters)).Equal(1)
-		assert(v.adapters[0]).Equal(adapter.NewServerAdapter(
-			true,
-			"tcp",
-			"0.0.0.0:8080",
-			tlsConfig,
-			v.sessionConfig.serverReadBufferSize,
-			v.sessionConfig.serverWriteBufferSize,
-			v,
-		))
-	})
-}
+// func TestSessionServer_ListenWithDebug(t *testing.T) {
+// 	t.Run("SessionServer is not running", func(t *testing.T) {
+// 		assert := base.NewAssert(t)
+// 		tlsConfig := &tls.Config{}
+// 		v := NewSessionServer(nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+// 		assert(v.ListenWithDebug("tcp", "0.0.0.0:8080", tlsConfig)).Equal(v)
+// 		assert(len(v.adapters)).Equal(1)
+// 		assert(v.adapters[0]).Equal(adapter.NewServerAdapter(
+// 			true,
+// 			"tcp",
+// 			"0.0.0.0:8080",
+// 			tlsConfig,
+// 			v.sessionConfig.serverReadBufferSize,
+// 			v.sessionConfig.serverWriteBufferSize,
+// 			v,
+// 		))
+// 	})
+// }
 
 func TestSessionServer_Open(t *testing.T) {
 	t.Run("it is already running", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := rpc.NewTestStreamReceiver()
-		v := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		v := NewSessionServer(nil, GetDefaultSessionConfig(), streamReceiver)
 		v.isRunning = true
 		v.Open()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
@@ -1114,7 +1108,7 @@ func TestSessionServer_Open(t *testing.T) {
 	t.Run("no valid adapter", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := rpc.NewTestStreamReceiver()
-		v := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		v := NewSessionServer(nil, GetDefaultSessionConfig(), streamReceiver)
 		v.Open()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
 			Equal(nil, base.ErrServerNoListenersAvailable)
@@ -1123,10 +1117,22 @@ func TestSessionServer_Open(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		waitCH := make(chan bool)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+		v := NewSessionServer(
+			[]*listener{
+				{
+					isDebug:   false,
+					network:   "tcp",
+					addr:      "127.0.0.1:8000",
+					tlsConfig: nil,
+				},
+				{
+					isDebug:   false,
+					network:   "tcp",
+					addr:      "127.0.0.1:8001",
+					tlsConfig: nil,
+				},
+			}, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
 		v.AddSession(&Session{id: 10})
-		v.Listen("tcp", "127.0.0.1:8000", nil)
-		v.Listen("tcp", "127.0.0.1:8001", nil)
 
 		go func() {
 			for v.TotalSessions() == 1 {
@@ -1150,9 +1156,15 @@ func TestSessionServer_Close(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		waitCH := make(chan bool)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+		v := NewSessionServer([]*listener{
+			{
+				isDebug:   false,
+				network:   "tcp",
+				addr:      "127.0.0.1:8000",
+				tlsConfig: nil,
+			},
+		}, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
 		v.AddSession(&Session{id: 10})
-		v.Listen("tcp", "127.0.0.1:8000", nil)
 
 		go func() {
 			for v.TotalSessions() == 1 {
@@ -1180,7 +1192,7 @@ func TestSessionServer_ReceiveStreamFromRouter(t *testing.T) {
 	t.Run("session is exist", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := rpc.NewTestStreamReceiver()
-		v := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		v := NewSessionServer(nil, GetDefaultSessionConfig(), streamReceiver)
 		v.AddSession(newSession(10, v))
 		stream := rpc.NewStream()
 		stream.SetSessionID(10)
@@ -1191,7 +1203,7 @@ func TestSessionServer_ReceiveStreamFromRouter(t *testing.T) {
 	t.Run("session is not exist", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := rpc.NewTestStreamReceiver()
-		v := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		v := NewSessionServer(nil, GetDefaultSessionConfig(), streamReceiver)
 		v.AddSession(newSession(10, v))
 		stream := rpc.NewStream()
 		stream.SetSessionID(11)
@@ -1204,7 +1216,7 @@ func TestSessionServer_ReceiveStreamFromRouter(t *testing.T) {
 func TestSessionServer_OnConnOpen(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+		v := NewSessionServer(nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
 		v.AddSession(newSession(10, v))
 		assert(base.RunWithCatchPanic(func() {
 			v.OnConnOpen(nil)
@@ -1215,7 +1227,7 @@ func TestSessionServer_OnConnOpen(t *testing.T) {
 func TestSessionServer_OnConnReadStream(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+		v := NewSessionServer(nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
 		syncConn := adapter.NewServerSyncConn(newTestNetConn(), 1200, 1200)
 		streamConn := adapter.NewStreamConn(false, syncConn, v)
 		syncConn.SetNext(streamConn)
@@ -1233,7 +1245,7 @@ func TestSessionServer_OnConnError(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := rpc.NewTestStreamReceiver()
-		v := NewSessionServer(GetDefaultSessionConfig(), streamReceiver)
+		v := NewSessionServer(nil, GetDefaultSessionConfig(), streamReceiver)
 		v.AddSession(newSession(10, v))
 		netConn := newTestNetConn()
 		syncConn := adapter.NewServerSyncConn(netConn, 1200, 1200)
@@ -1249,7 +1261,7 @@ func TestSessionServer_OnConnError(t *testing.T) {
 func TestSessionServer_OnConnClose(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := NewSessionServer(GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
+		v := NewSessionServer(nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver())
 		v.AddSession(newSession(10, v))
 		assert(base.RunWithCatchPanic(func() {
 			v.OnConnClose(nil)

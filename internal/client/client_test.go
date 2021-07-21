@@ -80,13 +80,10 @@ func getTestServer() *server.Server {
 			)
 		})
 
-	rpcServer := server.NewServer(nil).
-		ListenWithDebug("ws", "0.0.0.0:8765", nil)
+	rpcServer := server.NewServer(
+		server.GetDefaultServerConfig().SetNumOfThreads(1024),
+	).ListenWithDebug("ws", "0.0.0.0:8765", nil)
 	rpcServer.AddService("user", userService, nil)
-
-	go func() {
-		rpcServer.SetNumOfThreads(1024).Open()
-	}()
 
 	time.Sleep(100 * time.Millisecond)
 

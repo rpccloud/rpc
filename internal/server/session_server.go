@@ -1,7 +1,6 @@
 package server
 
 import (
-	"crypto/tls"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,40 +12,6 @@ import (
 	"github.com/rpccloud/rpc/internal/base"
 	"github.com/rpccloud/rpc/internal/rpc"
 )
-
-const (
-	sessionManagerVectorSize = 1024
-)
-
-// SessionConfig ...
-type SessionConfig struct {
-	numOfChannels    int
-	transLimit       int
-	heartbeat        time.Duration
-	heartbeatTimeout time.Duration
-
-	serverMaxSessions     int
-	serverSessionTimeout  time.Duration
-	serverReadBufferSize  int
-	serverWriteBufferSize int
-	serverCacheTimeout    time.Duration
-}
-
-// GetDefaultSessionConfig ...
-func GetDefaultSessionConfig() *SessionConfig {
-	return &SessionConfig{
-		numOfChannels:    32,
-		transLimit:       4 * 1024 * 1024,
-		heartbeat:        4 * time.Second,
-		heartbeatTimeout: 8 * time.Second,
-
-		serverMaxSessions:     10240000,
-		serverSessionTimeout:  120 * time.Second,
-		serverReadBufferSize:  1200,
-		serverWriteBufferSize: 1200,
-		serverCacheTimeout:    10 * time.Second,
-	}
-}
 
 // Channel ...
 type Channel struct {
@@ -133,7 +98,7 @@ func InitSession(
 		sessionServer.OnConnError(streamConn, base.ErrStream)
 	} else {
 		session := (*Session)(nil)
-		sessionConfig := sessionServer.sessionConfig
+		config := sessionServer.config
 
 		// try to find session by session string
 		strArray := strings.Split(sessionString, "-")
@@ -147,7 +112,7 @@ func InitSession(
 
 		// if session not find by session string, create a new session
 		if session == nil {
-			if sessionServer.TotalSessions() >= int64(sessionConfig.serverMaxSessions) {
+			if sessionServer.TotalSessions() >= int64(config.serverMaxSessions) {
 				stream.Release()
 				sessionServer.OnConnError(streamConn, base.ErrServerSessionSeedOverflows)
 				return
@@ -158,7 +123,7 @@ func InitSession(
 				sessionServer: sessionServer,
 				security:      base.GetRandString(32),
 				conn:          nil,
-				channels:      make([]Channel, sessionConfig.numOfChannels),
+				channels:      make([]Channel, config.numOfChannels),
 				activeTimeNS:  base.TimeNow().UnixNano(),
 				prev:          nil,
 				next:          nil,
@@ -172,10 +137,10 @@ func InitSession(
 		stream.SetWritePosToBodyStart()
 		stream.SetKind(rpc.StreamKindConnectResponse)
 		stream.WriteString(fmt.Sprintf("%d-%s", session.id, session.security))
-		stream.WriteInt64(int64(sessionConfig.numOfChannels))
-		stream.WriteInt64(int64(sessionConfig.transLimit))
-		stream.WriteInt64(int64(sessionConfig.heartbeat / time.Millisecond))
-		stream.WriteInt64(int64(sessionConfig.heartbeatTimeout / time.Millisecond))
+		stream.WriteInt64(int64(config.numOfChannels))
+		stream.WriteInt64(int64(config.transLimit))
+		stream.WriteInt64(int64(config.heartbeatInterval / time.Millisecond))
+		stream.WriteInt64(int64(config.heartbeatTimeout / time.Millisecond))
 		streamConn.WriteStreamAndRelease(stream)
 
 		session.OnConnOpen(streamConn)
@@ -188,22 +153,22 @@ func (p *Session) TimeCheck(nowNS int64) {
 	defer p.Unlock()
 
 	if sessionServer := p.sessionServer; sessionServer != nil {
-		sessionConfig := sessionServer.sessionConfig
+		config := sessionServer.config
 
 		if p.conn != nil {
 			// conn timeout
-			if !p.conn.IsActive(nowNS, sessionConfig.heartbeatTimeout) {
+			if !p.conn.IsActive(nowNS, config.heartbeatTimeout) {
 				p.conn.Close()
 			}
 		} else {
 			// session timeout
-			if nowNS-p.activeTimeNS > int64(sessionConfig.serverSessionTimeout) {
+			if nowNS-p.activeTimeNS > int64(config.serverSessionTimeout) {
 				p.activeTimeNS = 0
 			}
 		}
 
 		// channel timeout
-		timeoutNS := int64(sessionConfig.serverCacheTimeout)
+		timeoutNS := int64(config.serverCacheTimeout)
 		for i := 0; i < len(p.channels); i++ {
 			if channel := &p.channels[i]; channel.IsTimeout(nowNS, timeoutNS) {
 				channel.Clean()
@@ -399,7 +364,7 @@ type SessionServer struct {
 	sessionMapList []*SessionPool
 	streamReceiver rpc.IStreamReceiver
 	closeCH        chan bool
-	sessionConfig  *SessionConfig
+	config         *SessionConfig
 	adapters       []*adapter.Adapter
 	orcManager     *base.ORCManager
 	sync.Mutex
@@ -407,7 +372,8 @@ type SessionServer struct {
 
 // SessionServer ...
 func NewSessionServer(
-	sessionConfig *SessionConfig,
+	listeners []*listener,
+	config *SessionConfig,
 	streamReceiver rpc.IStreamReceiver,
 ) *SessionServer {
 	if streamReceiver == nil {
@@ -418,16 +384,28 @@ func NewSessionServer(
 		isRunning:      false,
 		sessionSeed:    0,
 		totalSessions:  0,
-		sessionMapList: make([]*SessionPool, sessionManagerVectorSize),
+		sessionMapList: make([]*SessionPool, 1024),
 		streamReceiver: streamReceiver,
 		closeCH:        make(chan bool, 1),
-		sessionConfig:  sessionConfig,
-		adapters:       make([]*adapter.Adapter, 0),
+		config:         config,
+		adapters:       make([]*adapter.Adapter, len(listeners)),
 		orcManager:     base.NewORCManager(),
 	}
 
-	for i := 0; i < sessionManagerVectorSize; i++ {
+	for i := 0; i < 1024; i++ {
 		ret.sessionMapList[i] = NewSessionPool(ret)
+	}
+
+	for i := 0; i < len(listeners); i++ {
+		ret.adapters[i] = adapter.NewServerAdapter(
+			listeners[i].isDebug,
+			listeners[i].network,
+			listeners[i].addr,
+			listeners[i].tlsConfig,
+			config.serverReadBufferSize,
+			config.serverWriteBufferSize,
+			ret,
+		)
 	}
 
 	return ret
@@ -440,12 +418,12 @@ func (p *SessionServer) TotalSessions() int64 {
 
 // AddSession ...
 func (p *SessionServer) AddSession(session *Session) bool {
-	return p.sessionMapList[session.id%sessionManagerVectorSize].Add(session)
+	return p.sessionMapList[session.id%1024].Add(session)
 }
 
 // GetSession ...
 func (p *SessionServer) GetSession(id uint64) (*Session, bool) {
-	return p.sessionMapList[id%sessionManagerVectorSize].Get(id)
+	return p.sessionMapList[id%1024].Get(id)
 }
 
 // CreateSessionID ...
@@ -455,65 +433,9 @@ func (p *SessionServer) CreateSessionID() uint64 {
 
 // TimeCheck ...
 func (p *SessionServer) TimeCheck(nowNS int64) {
-	for i := 0; i < sessionManagerVectorSize; i++ {
+	for i := 0; i < 1024; i++ {
 		p.sessionMapList[i].TimeCheck(nowNS)
 	}
-}
-
-// Listen ...
-func (p *SessionServer) Listen(
-	network string,
-	addr string,
-	tlsConfig *tls.Config,
-) *SessionServer {
-	p.Lock()
-	defer p.Unlock()
-
-	if !p.isRunning {
-		p.adapters = append(p.adapters, adapter.NewServerAdapter(
-			false,
-			network,
-			addr,
-			tlsConfig,
-			p.sessionConfig.serverReadBufferSize,
-			p.sessionConfig.serverWriteBufferSize,
-			p,
-		))
-	} else {
-		p.streamReceiver.OnReceiveStream(
-			rpc.MakeSystemErrorStream(base.ErrServerAlreadyRunning),
-		)
-	}
-
-	return p
-}
-
-// ListenWithDebug ...
-func (p *SessionServer) ListenWithDebug(
-	network string,
-	addr string,
-	tlsConfig *tls.Config,
-) *SessionServer {
-	p.Lock()
-	defer p.Unlock()
-
-	if !p.isRunning {
-		p.adapters = append(p.adapters, adapter.NewServerAdapter(
-			true,
-			network,
-			addr,
-			tlsConfig,
-			p.sessionConfig.serverReadBufferSize,
-			p.sessionConfig.serverWriteBufferSize,
-			p,
-		))
-	} else {
-		p.streamReceiver.OnReceiveStream(
-			rpc.MakeSystemErrorStream(base.ErrServerAlreadyRunning),
-		)
-	}
-
-	return p
 }
 
 // Open ...
