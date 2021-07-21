@@ -85,6 +85,10 @@ func getTestServer() *server.Server {
 	).ListenWithDebug("ws", "0.0.0.0:8765", nil)
 	rpcServer.AddService("user", userService, nil)
 
+	go func() {
+		rpcServer.Open()
+	}()
+
 	time.Sleep(100 * time.Millisecond)
 
 	return rpcServer
