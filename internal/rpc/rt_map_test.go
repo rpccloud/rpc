@@ -39,37 +39,37 @@ func TestCompareMapItem(t *testing.T) {
 		assert(compareMapItem(
 			&mapItem{"b", getFastKey("b"), 0},
 			"a", getFastKey("a")),
-		).Equal(1)
+		).Equals(1)
 
 		assert(compareMapItem(
 			&mapItem{"a", getFastKey("a"), 0},
 			"b", getFastKey("b")),
-		).Equal(-1)
+		).Equals(-1)
 
 		assert(compareMapItem(
 			&mapItem{"aaa", getFastKey("aaa"), 0},
 			"a", getFastKey("a")),
-		).Equal(1)
+		).Equals(1)
 
 		assert(compareMapItem(
 			&mapItem{"a", getFastKey("a"), 0},
 			"aaa", getFastKey("aaa")),
-		).Equal(-1)
+		).Equals(-1)
 
 		assert(compareMapItem(
 			&mapItem{"", getFastKey(""), 0},
 			"", getFastKey("")),
-		).Equal(0)
+		).Equals(0)
 
 		assert(compareMapItem(
 			&mapItem{"a", getFastKey("a"), 0},
 			"a", getFastKey("a")),
-		).Equal(0)
+		).Equals(0)
 
 		assert(compareMapItem(
 			&mapItem{"hello", getFastKey("hello"), 0},
 			"hello", getFastKey("hello")),
-		).Equal(0)
+		).Equals(0)
 	})
 }
 
@@ -128,7 +128,7 @@ func TestGetSort4(t *testing.T) {
 				v2 <<= 4
 				v2 |= uint64(0xFFFFFFFFFFFF0000 | items[i].pos)
 			}
-			assert(v1).Equal(v2)
+			assert(v1).Equals(v2)
 		}
 	})
 }
@@ -147,7 +147,7 @@ func TestGetSort8(t *testing.T) {
 				v2 <<= 4
 				v2 |= uint64(items[i].pos)
 			}
-			assert(v1).Equal(0xFFFFFFFF00000000 | v2)
+			assert(v1).Equals(0xFFFFFFFF00000000 | v2)
 		}
 	})
 }
@@ -168,7 +168,7 @@ func TestGetSort16(t *testing.T) {
 				v2 |= uint64(items[i].pos)
 			}
 
-			assert(v1).Equal(v2)
+			assert(v1).Equals(v2)
 		}
 	})
 }
@@ -176,7 +176,7 @@ func TestGetSort16(t *testing.T) {
 func TestRTMap(t *testing.T) {
 	t.Run("check constant", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(sizeOfMapItem).Equal(int(unsafe.Sizeof(mapItem{})))
+		assert(sizeOfMapItem).Equals(int(unsafe.Sizeof(mapItem{})))
 	})
 
 	t.Run("test thread safe", func(t *testing.T) {
@@ -196,7 +196,7 @@ func TestRTMap(t *testing.T) {
 		for i := 0; i < 20; i++ {
 			<-wait
 		}
-		assert(v.Size()).Equal(2000)
+		assert(v.Size()).Equals(2000)
 		sum := int64(0)
 		for i := 0; i < 20; i++ {
 			for j := 0; j < 100; j++ {
@@ -204,7 +204,7 @@ func TestRTMap(t *testing.T) {
 				sum += v
 			}
 		}
-		assert(sum).Equal(int64(19000))
+		assert(sum).Equals(int64(19000))
 	})
 }
 
@@ -212,7 +212,7 @@ func TestRTMap_Get(t *testing.T) {
 	t.Run("invalid RTMap", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		rtMap := RTMap{}
-		assert(rtMap.Get("name").err).Equal(
+		assert(rtMap.Get("name").err).Equals(
 			base.ErrRuntimeIllegalInCurrentGoroutine,
 		)
 	})
@@ -223,9 +223,9 @@ func TestRTMap_Get(t *testing.T) {
 		v := testRuntime.NewRTMap(0)
 		_ = v.Set("name", "kitty")
 		_ = v.Set("age", uint64(18))
-		assert(v.Get("name").ToString()).Equal("kitty", nil)
-		assert(v.Get("age").ToUint64()).Equal(uint64(18), nil)
-		assert(v.Get("noKey").ToString()).Equal(
+		assert(v.Get("name").ToString()).Equals("kitty", nil)
+		assert(v.Get("age").ToUint64()).Equals(uint64(18), nil)
+		assert(v.Get("noKey").ToString()).Equals(
 			"",
 			base.ErrRTMapNameNotFound.AddDebug(
 				"RTMap key noKey does not exist",
@@ -237,10 +237,10 @@ func TestRTMap_Get(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.Reset()
 		v := testRuntime.NewRTMap(0)
-		assert(v.Get("name").err).Equal(
+		assert(v.Get("name").err).Equals(
 			base.ErrRTMapNameNotFound.AddDebug("RTMap key name does not exist"),
 		)
-		assert(v.Get("age").err).Equal(
+		assert(v.Get("age").err).Equals(
 			base.ErrRTMapNameNotFound.AddDebug("RTMap key age does not exist"),
 		)
 	})
@@ -250,7 +250,7 @@ func TestRTMap_Set(t *testing.T) {
 	t.Run("invalid RTMap", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		rtMap := RTMap{}
-		assert(rtMap.Set("name", "kitty")).Equal(
+		assert(rtMap.Set("name", "kitty")).Equals(
 			base.ErrRuntimeIllegalInCurrentGoroutine,
 		)
 	})
@@ -259,7 +259,7 @@ func TestRTMap_Set(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.Reset()
 		v := testRuntime.NewRTMap(0)
-		assert(v.Set("name", make(chan bool))).Equal(
+		assert(v.Set("name", make(chan bool))).Equals(
 			base.ErrUnsupportedValue.AddDebug(
 				"value type(chan bool) is not supported",
 			),
@@ -271,22 +271,22 @@ func TestRTMap_Set(t *testing.T) {
 		testRuntime.thread.Reset()
 		v := testRuntime.NewRTMap(0)
 		_ = v.Set("name", "kitty")
-		assert(v.Get("name").ToString()).Equal("kitty", nil)
-		assert(v.Get("name").cacheBytes).Equal([]byte("kitty"))
+		assert(v.Get("name").ToString()).Equals("kitty", nil)
+		assert(v.Get("name").cacheBytes).Equals([]byte("kitty"))
 		_ = v.Set("name", "doggy")
-		assert(v.Get("name").ToString()).Equal("doggy", nil)
-		assert(v.Get("name").cacheBytes).Equal([]byte("doggy"))
+		assert(v.Get("name").ToString()).Equals("doggy", nil)
+		assert(v.Get("name").cacheBytes).Equals([]byte("doggy"))
 
 		_ = v.Set("age", 3)
-		assert(v.Get("age").ToInt64()).Equal(int64(3), nil)
-		assert(v.Get("age").cacheSafe).Equal(true)
-		assert(v.Get("age").cacheBytes).Equal([]byte(nil))
-		assert(v.Get("age").cacheError).Equal(base.ErrStream)
+		assert(v.Get("age").ToInt64()).Equals(int64(3), nil)
+		assert(v.Get("age").cacheSafe).Equals(true)
+		assert(v.Get("age").cacheBytes).Equals([]byte(nil))
+		assert(v.Get("age").cacheError).Equals(base.ErrStream)
 		_ = v.Set("age", 6)
-		assert(v.Get("age").ToInt64()).Equal(int64(6), nil)
-		assert(v.Get("age").cacheSafe).Equal(true)
-		assert(v.Get("age").cacheBytes).Equal([]byte(nil))
-		assert(v.Get("age").cacheError).Equal(base.ErrStream)
+		assert(v.Get("age").ToInt64()).Equals(int64(6), nil)
+		assert(v.Get("age").cacheSafe).Equals(true)
+		assert(v.Get("age").cacheBytes).Equals([]byte(nil))
+		assert(v.Get("age").cacheError).Equals(base.ErrStream)
 	})
 }
 
@@ -294,7 +294,7 @@ func TestRTMap_Delete(t *testing.T) {
 	t.Run("invalid RTMap", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		rtMap := RTMap{}
-		assert(rtMap.Delete("name")).Equal(
+		assert(rtMap.Delete("name")).Equals(
 			base.ErrRuntimeIllegalInCurrentGoroutine,
 		)
 	})
@@ -303,7 +303,7 @@ func TestRTMap_Delete(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.Reset()
 		v := testRuntime.NewRTMap(0)
-		assert(v.Delete("name")).Equal(
+		assert(v.Delete("name")).Equals(
 			base.ErrRTMapNameNotFound.AddDebug("RTMap key name does not exist"),
 		)
 	})
@@ -314,7 +314,7 @@ func TestRTMap_Delete(t *testing.T) {
 		v := testRuntime.NewRTMap(0)
 		_ = v.Set("name", "kitty")
 		_ = v.Delete("name")
-		assert(v.Delete("name")).Equal(
+		assert(v.Delete("name")).Equals(
 			base.ErrRTMapNameNotFound.AddDebug("RTMap key name does not exist"),
 		)
 	})
@@ -324,7 +324,7 @@ func TestRTMap_Delete(t *testing.T) {
 		testRuntime.thread.Reset()
 		v := testRuntime.NewRTMap(0)
 		_ = v.Set("name", "kitty")
-		assert(v.Delete("name")).Equal(nil)
+		assert(v.Delete("name")).Equals(nil)
 	})
 }
 
@@ -332,7 +332,7 @@ func TestRTMap_DeleteAll(t *testing.T) {
 	t.Run("invalid RTMap", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		rtMap := RTMap{}
-		assert(rtMap.DeleteAll()).Equal(
+		assert(rtMap.DeleteAll()).Equals(
 			base.ErrRuntimeIllegalInCurrentGoroutine,
 		)
 	})
@@ -345,11 +345,11 @@ func TestRTMap_DeleteAll(t *testing.T) {
 			for j := 0; j < 100; j++ {
 				_ = rtMap.Set(strconv.Itoa(j), j)
 			}
-			assert(rtMap.Size()).Equal(100)
+			assert(rtMap.Size()).Equals(100)
 			preCap := cap(*rtMap.items)
-			assert(rtMap.DeleteAll()).Equal(nil)
-			assert(rtMap.Size()).Equal(0)
-			assert(len(*rtMap.items), cap(*rtMap.items)).Equal(0, preCap)
+			assert(rtMap.DeleteAll()).Equals(nil)
+			assert(rtMap.Size()).Equals(0)
+			assert(len(*rtMap.items), cap(*rtMap.items)).Equals(0, preCap)
 		}
 	})
 }
@@ -358,14 +358,14 @@ func TestRTMap_Size(t *testing.T) {
 	t.Run("invalid RTMap", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := RTMap{}
-		assert(v.Size()).Equal(-1)
+		assert(v.Size()).Equals(-1)
 	})
 
 	t.Run("valid RTMap 1", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.Reset()
 		v := testRuntime.NewRTMap(0)
-		assert(v.Size()).Equal(0)
+		assert(v.Size()).Equals(0)
 	})
 
 	t.Run("valid RTMap 2", func(t *testing.T) {
@@ -373,7 +373,7 @@ func TestRTMap_Size(t *testing.T) {
 		testRuntime.thread.Reset()
 		v := testRuntime.NewRTMap(0)
 		_ = v.Set("name", "kitty")
-		assert(v.Size()).Equal(1)
+		assert(v.Size()).Equals(1)
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -383,13 +383,13 @@ func TestRTMap_Size(t *testing.T) {
 			v := testRuntime.NewRTMap(0)
 			items := getTestMapItems(i, false)
 			for _, it := range items {
-				assert(v.Set(it.key, true)).Equal(nil)
+				assert(v.Set(it.key, true)).Equals(nil)
 			}
-			assert(v.Size()).Equal(i)
+			assert(v.Size()).Equals(i)
 			for _, it := range items {
-				assert(v.Delete(it.key)).Equal(nil)
+				assert(v.Delete(it.key)).Equals(nil)
 			}
-			assert(v.Size()).Equal(0)
+			assert(v.Size()).Equals(0)
 		}
 	})
 }
@@ -411,7 +411,7 @@ func TestRTMap_getPosRecord(t *testing.T) {
 			for _, it := range items {
 				idx, pos := v.getPosRecord(it.key, getFastKey(it.key))
 				assert(pos > 0).IsTrue()
-				assert((*v.items)[idx].key).Equal(it.key)
+				assert((*v.items)[idx].key).Equals(it.key)
 			}
 		}
 	})
@@ -430,7 +430,7 @@ func TestRTMap_getPosRecord(t *testing.T) {
 			for j := 0; j < 600; j++ {
 				key := base.GetRandString(6 + rand.Int()%6)
 				assert(v.getPosRecord(key, getFastKey(key))).
-					Equal(-1, posRecord(0))
+					Equals(-1, posRecord(0))
 			}
 		}
 	})
@@ -442,8 +442,8 @@ func TestRTMap_appendValue(t *testing.T) {
 		testRuntime.thread.Reset()
 		v := testRuntime.NewRTMap(0)
 		v.appendValue("name", 1)
-		assert(len(*v.items)).Equal(1)
-		assert((*v.items)[0].pos).Equal(posRecord(1))
+		assert(len(*v.items)).Equals(1)
+		assert((*v.items)[0].pos).Equals(posRecord(1))
 	})
 
 	t.Run("key exists", func(t *testing.T) {
@@ -452,8 +452,8 @@ func TestRTMap_appendValue(t *testing.T) {
 		v := testRuntime.NewRTMap(0)
 		v.appendValue("name", 1)
 		v.appendValue("name", 2)
-		assert(len(*v.items)).Equal(1)
-		assert((*v.items)[0].pos).Equal(posRecord(2))
+		assert(len(*v.items)).Equals(1)
+		assert((*v.items)[0].pos).Equals(posRecord(2))
 	})
 
 	t.Run("sort ok", func(t *testing.T) {
@@ -468,7 +468,7 @@ func TestRTMap_appendValue(t *testing.T) {
 			sort.Slice(items, func(i, j int) bool {
 				return isMapItemLess(&items[i], &items[j])
 			})
-			assert(*v.items).Equal(items)
+			assert(*v.items).Equals(items)
 		}
 	})
 }
@@ -486,7 +486,7 @@ func TestRTMap_sort(t *testing.T) {
 			sort.Slice(items, func(i, j int) bool {
 				return isMapItemLess(&items[i], &items[j])
 			})
-			assert(*v.items).Equal(items)
+			assert(*v.items).Equals(items)
 		}
 	})
 }

@@ -18,10 +18,10 @@ func TestNewServerSyncConn(t *testing.T) {
 		v := NewServerSyncConn(conn, 1024, 2048)
 		assert(v.isServer).IsTrue()
 		assert(v.isRunning).IsTrue()
-		assert(v.conn).Equal(conn)
+		assert(v.conn).Equals(conn)
 		assert(v.next).IsNil()
-		assert(len(v.rBuf), cap(v.rBuf)).Equal(1024, 1024)
-		assert(len(v.wBuf), cap(v.wBuf)).Equal(2048, 2048)
+		assert(len(v.rBuf), cap(v.rBuf)).Equals(1024, 1024)
+		assert(len(v.wBuf), cap(v.wBuf)).Equals(2048, 2048)
 	})
 }
 
@@ -32,10 +32,10 @@ func TestNewClientSyncConn(t *testing.T) {
 		v := NewClientSyncConn(conn, 1024, 2048)
 		assert(v.isServer).IsFalse()
 		assert(v.isRunning).IsTrue()
-		assert(v.conn).Equal(conn)
+		assert(v.conn).Equals(conn)
 		assert(v.next).IsNil()
-		assert(len(v.rBuf), cap(v.rBuf)).Equal(1024, 1024)
-		assert(len(v.wBuf), cap(v.wBuf)).Equal(2048, 2048)
+		assert(len(v.rBuf), cap(v.rBuf)).Equals(1024, 1024)
+		assert(len(v.wBuf), cap(v.wBuf)).Equals(2048, 2048)
 	})
 }
 
@@ -44,7 +44,7 @@ func TestSyncConn_SetNext(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewServerSyncConn(&net.TCPConn{}, 1024, 2048)
 		v.SetNext(v)
-		assert(v.next).Equal(v)
+		assert(v.next).Equals(v)
 		v.SetNext(nil)
 		assert(v.next == nil).IsTrue()
 	})
@@ -58,10 +58,10 @@ func TestSyncConn_OnOpen(t *testing.T) {
 		v := NewServerSyncConn(&net.TCPConn{}, 1024, 2048)
 		v.SetNext(streamConn)
 		v.OnOpen()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(0)
-		assert(receiver.GetOnErrorCount()).Equal(0)
-		assert(receiver.GetOnStreamCount()).Equal(0)
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
+		assert(receiver.GetOnStreamCount()).Equals(0)
 	})
 }
 
@@ -74,10 +74,10 @@ func TestSyncConn_OnClose(t *testing.T) {
 		v.SetNext(streamConn)
 		v.OnOpen()
 		v.OnClose()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(1)
-		assert(receiver.GetOnErrorCount()).Equal(0)
-		assert(receiver.GetOnStreamCount()).Equal(0)
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(1)
+		assert(receiver.GetOnErrorCount()).Equals(0)
+		assert(receiver.GetOnStreamCount()).Equals(0)
 	})
 }
 
@@ -91,11 +91,11 @@ func TestSyncConn_OnError(t *testing.T) {
 		v.OnOpen()
 		v.OnError(base.ErrStream.AddDebug("error"))
 		v.OnClose()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(1)
-		assert(receiver.GetOnErrorCount()).Equal(1)
-		assert(receiver.GetOnStreamCount()).Equal(0)
-		assert(receiver.GetError()).Equal(base.ErrStream.AddDebug("error"))
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(1)
+		assert(receiver.GetOnErrorCount()).Equals(1)
+		assert(receiver.GetOnStreamCount()).Equals(0)
+		assert(receiver.GetError()).Equals(base.ErrStream.AddDebug("error"))
 	})
 }
 
@@ -108,7 +108,7 @@ func TestSyncConn_Close(t *testing.T) {
 		v.SetNext(streamConn)
 		v.isRunning = false
 		v.Close()
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 
 	t.Run("running", func(t *testing.T) {
@@ -130,9 +130,9 @@ func TestSyncConn_Close(t *testing.T) {
 		v.SetNext(streamConn)
 		netConn.isRunning = false
 		v.Close()
-		assert(receiver.GetOnErrorCount()).Equal(1)
+		assert(receiver.GetOnErrorCount()).Equals(1)
 		assert(receiver.GetError()).
-			Equal(base.ErrConnClose.AddDebug("close error"))
+			Equals(base.ErrConnClose.AddDebug("close error"))
 	})
 }
 
@@ -141,7 +141,7 @@ func TestSyncConn_LocalAddr(t *testing.T) {
 		assert := base.NewAssert(t)
 		expectedAddr, _ := net.ResolveTCPAddr("tcp", "127.0.0.12:8080")
 		v := NewServerSyncConn(newTestNetConn(nil, 10, 10), 1024, 2048)
-		assert(v.LocalAddr()).Equal(expectedAddr)
+		assert(v.LocalAddr()).Equals(expectedAddr)
 	})
 }
 
@@ -150,7 +150,7 @@ func TestSyncConn_RemoteAddr(t *testing.T) {
 		assert := base.NewAssert(t)
 		expectedAddr, _ := net.ResolveTCPAddr("tcp", "127.0.0.11:8081")
 		v := NewServerSyncConn(newTestNetConn(nil, 10, 10), 1024, 2048)
-		assert(v.RemoteAddr()).Equal(expectedAddr)
+		assert(v.RemoteAddr()).Equals(expectedAddr)
 	})
 }
 
@@ -171,9 +171,9 @@ func TestSyncConn_OnReadReady(t *testing.T) {
 		v.SetNext(streamConn)
 		netConn.isRunning = false
 		assert(v.OnReadReady()).IsFalse()
-		assert(receiver.GetOnErrorCount()).Equal(1)
+		assert(receiver.GetOnErrorCount()).Equals(1)
 		assert(receiver.GetError()).
-			Equal(base.ErrConnRead.AddDebug(base.ErrNetClosingSuffix))
+			Equals(base.ErrConnRead.AddDebug(base.ErrNetClosingSuffix))
 	})
 
 	t.Run("server ok", func(t *testing.T) {
@@ -187,8 +187,8 @@ func TestSyncConn_OnReadReady(t *testing.T) {
 		v := NewServerSyncConn(netConn, 1024, 2048)
 		v.SetNext(streamConn)
 		assert(v.OnReadReady()).IsTrue()
-		assert(receiver.GetOnStreamCount()).Equal(1)
-		assert(receiver.GetStream().GetBuffer()).Equal(stream.GetBuffer())
+		assert(receiver.GetOnStreamCount()).Equals(1)
+		assert(receiver.GetStream().GetBuffer()).Equals(stream.GetBuffer())
 	})
 
 	t.Run("client error io.EOF", func(t *testing.T) {
@@ -207,9 +207,9 @@ func TestSyncConn_OnReadReady(t *testing.T) {
 		v.SetNext(streamConn)
 		netConn.isRunning = false
 		assert(v.OnReadReady()).IsFalse()
-		assert(receiver.GetOnErrorCount()).Equal(1)
+		assert(receiver.GetOnErrorCount()).Equals(1)
 		assert(receiver.GetError()).
-			Equal(base.ErrConnRead.AddDebug(base.ErrNetClosingSuffix))
+			Equals(base.ErrConnRead.AddDebug(base.ErrNetClosingSuffix))
 	})
 
 	t.Run("client error use of closed conn when closed", func(t *testing.T) {
@@ -223,7 +223,7 @@ func TestSyncConn_OnReadReady(t *testing.T) {
 		v.isRunning = false
 		netConn.isRunning = false
 		assert(v.OnReadReady()).IsFalse()
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 }
 
@@ -236,7 +236,7 @@ func TestSyncConn_OnWriteReady(t *testing.T) {
 		v := NewClientSyncConn(netConn, 1024, 2048)
 		v.SetNext(streamConn)
 		assert(v.OnWriteReady()).IsTrue()
-		assert(netConn.writePos).Equal(0)
+		assert(netConn.writePos).Equals(0)
 	})
 
 	t.Run("test", func(t *testing.T) {
@@ -265,7 +265,7 @@ func TestSyncConn_OnWriteReady(t *testing.T) {
 					v := NewClientSyncConn(netConn, 1024, writeBufSize)
 					v.SetNext(streamConn)
 					assert(v.OnWriteReady()).IsTrue()
-					assert(netConn.writeBuf[:netConn.writePos]).Equal(exceptBuf)
+					assert(netConn.writeBuf[:netConn.writePos]).Equals(exceptBuf)
 				}
 			}
 
@@ -285,9 +285,9 @@ func TestSyncConn_OnWriteReady(t *testing.T) {
 		v := NewClientSyncConn(netConn, 1024, 1024)
 		v.SetNext(streamConn)
 		assert(v.OnWriteReady()).IsFalse()
-		assert(receiver.GetOnErrorCount()).Equal(1)
+		assert(receiver.GetOnErrorCount()).Equals(1)
 		assert(receiver.GetError()).
-			Equal(base.ErrConnWrite.AddDebug(base.ErrNetClosingSuffix))
+			Equals(base.ErrConnWrite.AddDebug(base.ErrNetClosingSuffix))
 	})
 
 	t.Run("write zero", func(t *testing.T) {
@@ -301,7 +301,7 @@ func TestSyncConn_OnWriteReady(t *testing.T) {
 		v := NewClientSyncConn(netConn, 1024, 1024)
 		v.SetNext(streamConn)
 		assert(v.OnWriteReady()).IsFalse()
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 }
 
@@ -312,7 +312,7 @@ func TestSyncConn_OnReadBytes(t *testing.T) {
 
 		assert(base.RunWithCatchPanic(func() {
 			v.OnReadBytes(nil)
-		})).Equal("kernel error: it should not be called")
+		})).Equals("kernel error: it should not be called")
 	})
 }
 
@@ -323,15 +323,15 @@ func TestSyncConn_OnFillWrite(t *testing.T) {
 
 		assert(base.RunWithCatchPanic(func() {
 			v.OnFillWrite(nil)
-		})).Equal("kernel error: it should not be called")
+		})).Equals("kernel error: it should not be called")
 	})
 }
 
 func TestStreamConnBasic(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(streamConnStatusRunning).Equal(int32(1))
-		assert(streamConnStatusClosed).Equal(int32(0))
+		assert(streamConnStatusRunning).Equals(int32(1))
+		assert(streamConnStatusClosed).Equals(int32(0))
 	})
 }
 
@@ -341,14 +341,14 @@ func TestNewStreamConn(t *testing.T) {
 		prev := NewServerSyncConn(nil, 1024, 1024)
 		receiver := newTestSingleReceiver()
 		v := NewStreamConn(false, prev, receiver)
-		assert(v.status).Equal(streamConnStatusRunning)
-		assert(v.prev).Equal(prev)
-		assert(v.receiver).Equal(receiver)
-		assert(len(v.writeCH)).Equal(0)
-		assert(cap(v.writeCH)).Equal(16)
+		assert(v.status).Equals(streamConnStatusRunning)
+		assert(v.prev).Equals(prev)
+		assert(v.receiver).Equals(receiver)
+		assert(len(v.writeCH)).Equals(0)
+		assert(cap(v.writeCH)).Equals(16)
 		assert(v.readStreamGenerator).IsNotNil()
 		assert(v.writeStream).IsNil()
-		assert(v.writePos).Equal(0)
+		assert(v.writePos).Equals(0)
 	})
 }
 
@@ -359,7 +359,7 @@ func TestStreamConn_SetReceiver(t *testing.T) {
 		changeReceiver := newTestSingleReceiver()
 		v := NewStreamConn(false, nil, initReceiver)
 		v.SetReceiver(changeReceiver)
-		assert(v.receiver).Equal(changeReceiver)
+		assert(v.receiver).Equals(changeReceiver)
 	})
 }
 
@@ -369,9 +369,9 @@ func TestStreamConn_OnOpen(t *testing.T) {
 		receiver := newTestSingleReceiver()
 		v := NewStreamConn(false, nil, receiver)
 		v.OnOpen()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(0)
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 }
 
@@ -382,9 +382,9 @@ func TestStreamConn_OnClose(t *testing.T) {
 		v := NewStreamConn(false, nil, receiver)
 		v.OnOpen()
 		v.OnClose()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(1)
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(1)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 }
 
@@ -396,10 +396,10 @@ func TestStreamConn_OnError(t *testing.T) {
 		v.OnOpen()
 		v.OnError(base.ErrStream)
 		v.OnClose()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(1)
-		assert(receiver.GetOnErrorCount()).Equal(1)
-		assert(receiver.GetError()).Equal(base.ErrStream)
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(1)
+		assert(receiver.GetOnErrorCount()).Equals(1)
+		assert(receiver.GetError()).Equals(base.ErrStream)
 	})
 }
 
@@ -410,8 +410,8 @@ func TestStreamConn_OnReadBytes(t *testing.T) {
 		streamConn := NewStreamConn(false, nil, receiver)
 		streamConn.OnOpen()
 		streamConn.OnReadBytes(rpc.NewStream().GetBuffer())
-		assert(receiver.GetOnErrorCount()).Equal(1)
-		assert(receiver.GetError()).Equal(base.ErrStream)
+		assert(receiver.GetOnErrorCount()).Equals(1)
+		assert(receiver.GetError()).Equals(base.ErrStream)
 	})
 
 	t.Run("stream check error", func(t *testing.T) {
@@ -425,8 +425,8 @@ func TestStreamConn_OnReadBytes(t *testing.T) {
 		errBuffer := stream.GetBuffer()
 		errBuffer[len(errBuffer)-1] = 11
 		streamConn.OnReadBytes(errBuffer)
-		assert(receiver.GetOnErrorCount()).Equal(1)
-		assert(receiver.GetError()).Equal(base.ErrStream)
+		assert(receiver.GetOnErrorCount()).Equals(1)
+		assert(receiver.GetError()).Equals(base.ErrStream)
 	})
 
 	t.Run("test", func(t *testing.T) {
@@ -452,7 +452,7 @@ func TestStreamConn_OnReadBytes(t *testing.T) {
 					streamConn := NewStreamConn(true, netConn, receiver)
 					netConn.SetNext(streamConn)
 					runIConn(netConn)
-					assert(receiver.GetOnStreamCount()).Equal(streams)
+					assert(receiver.GetOnStreamCount()).Equals(streams)
 					expectBuffer := make([]byte, 0)
 
 					for i := 0; i < streams; i++ {
@@ -461,7 +461,7 @@ func TestStreamConn_OnReadBytes(t *testing.T) {
 							receiver.GetStream().GetBuffer()...,
 						)
 					}
-					assert(expectBuffer).Equal(buffer)
+					assert(expectBuffer).Equals(buffer)
 				}
 			}
 		}
@@ -475,8 +475,8 @@ func TestStreamConn_OnFillWrite(t *testing.T) {
 		receiver := newTestSingleReceiver()
 		v := NewStreamConn(false, nil, receiver)
 		v.OnOpen()
-		assert(v.OnFillWrite(buf)).Equal(0)
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(v.OnFillWrite(buf)).Equals(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 
 	t.Run("streamConn is closed", func(t *testing.T) {
@@ -490,8 +490,8 @@ func TestStreamConn_OnFillWrite(t *testing.T) {
 		)
 		v.OnOpen()
 		v.Close()
-		assert(v.OnFillWrite(buf)).Equal(0)
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(v.OnFillWrite(buf)).Equals(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 
 	t.Run("emulate peek kernel error", func(t *testing.T) {
@@ -506,9 +506,9 @@ func TestStreamConn_OnFillWrite(t *testing.T) {
 		v.OnOpen()
 		v.writeStream = rpc.NewStream()
 		v.writePos = v.writeStream.GetWritePos()
-		assert(v.OnFillWrite(buf)).Equal(0)
-		assert(receiver.GetOnErrorCount()).Equal(1)
-		assert(receiver.GetError()).Equal(base.ErrOnFillWriteFatal)
+		assert(v.OnFillWrite(buf)).Equals(0)
+		assert(receiver.GetOnErrorCount()).Equals(1)
+		assert(receiver.GetError()).Equals(base.ErrOnFillWriteFatal)
 	})
 
 	t.Run("test", func(t *testing.T) {
@@ -540,12 +540,12 @@ func TestStreamConn_OnFillWrite(t *testing.T) {
 				for start < len(buffer) {
 					if start+fillBytes < len(buffer) {
 						b := make([]byte, fillBytes)
-						assert(v.OnFillWrite(b)).Equal(fillBytes)
-						assert(b).Equal(buffer[start : start+fillBytes])
+						assert(v.OnFillWrite(b)).Equals(fillBytes)
+						assert(b).Equals(buffer[start : start+fillBytes])
 					} else {
 						b := make([]byte, fillBytes)
-						assert(v.OnFillWrite(b)).Equal(len(buffer) - start)
-						assert(b[:len(buffer)-start]).Equal(buffer[start:])
+						assert(v.OnFillWrite(b)).Equals(len(buffer) - start)
+						assert(b[:len(buffer)-start]).Equals(buffer[start:])
 						break
 					}
 
@@ -553,7 +553,7 @@ func TestStreamConn_OnFillWrite(t *testing.T) {
 					fillBytes++
 				}
 
-				assert(receiver.GetOnErrorCount()).Equal(0)
+				assert(receiver.GetOnErrorCount()).Equals(0)
 			}
 		}
 	})
@@ -591,7 +591,7 @@ func TestStreamConn_LocalAddr(t *testing.T) {
 		expectedAddr, _ := net.ResolveTCPAddr("tcp", "127.0.0.12:8080")
 		prev := NewServerSyncConn(newTestNetConn(nil, 10, 10), 1024, 1024)
 		v := NewStreamConn(false, prev, nil)
-		assert(v.LocalAddr()).Equal(expectedAddr)
+		assert(v.LocalAddr()).Equals(expectedAddr)
 	})
 }
 
@@ -601,7 +601,7 @@ func TestStreamConn_RemoteAddr(t *testing.T) {
 		expectedAddr, _ := net.ResolveTCPAddr("tcp", "127.0.0.11:8081")
 		prev := NewServerSyncConn(newTestNetConn(nil, 10, 10), 1024, 1024)
 		v := NewStreamConn(false, prev, nil)
-		assert(v.RemoteAddr()).Equal(expectedAddr)
+		assert(v.RemoteAddr()).Equals(expectedAddr)
 	})
 }
 
@@ -617,7 +617,7 @@ func TestStreamConn_WriteStreamAndRelease(t *testing.T) {
 		retStream := rpc.NewStream()
 		retStream.BuildStreamCheck()
 		assert(conn.writeBuf[:conn.writePos]).
-			Equal(retStream.GetBuffer())
+			Equals(retStream.GetBuffer())
 	})
 
 	t.Run("write error", func(t *testing.T) {
@@ -631,7 +631,7 @@ func TestStreamConn_WriteStreamAndRelease(t *testing.T) {
 		v.WriteStreamAndRelease(rpc.NewStream())
 		retStream := rpc.NewStream()
 		retStream.BuildStreamCheck()
-		assert(conn.writeBuf[:conn.writePos]).Equal([]byte{})
+		assert(conn.writeBuf[:conn.writePos]).Equals([]byte{})
 	})
 }
 
@@ -659,7 +659,7 @@ func TestStreamConn_SetNext(t *testing.T) {
 		v := NewStreamConn(false, nil, nil)
 		assert(base.RunWithCatchPanic(func() {
 			v.SetNext(nil)
-		})).Equal("kernel error: it should not be called")
+		})).Equals("kernel error: it should not be called")
 	})
 }
 
@@ -669,7 +669,7 @@ func TestStreamConn_OnReadReady(t *testing.T) {
 		v := NewStreamConn(false, nil, nil)
 		assert(base.RunWithCatchPanic(func() {
 			v.OnReadReady()
-		})).Equal("kernel error: it should not be called")
+		})).Equals("kernel error: it should not be called")
 	})
 }
 
@@ -679,6 +679,6 @@ func TestStreamConn_OnWriteReady(t *testing.T) {
 		v := NewStreamConn(false, nil, nil)
 		assert(base.RunWithCatchPanic(func() {
 			v.OnWriteReady()
-		})).Equal("kernel error: it should not be called")
+		})).Equals("kernel error: it should not be called")
 	})
 }

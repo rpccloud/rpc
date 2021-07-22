@@ -19,7 +19,7 @@ func TestBuildFuncCache(t *testing.T) {
 	t.Run("duplicate kind", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		filePath := path.Join(curDir, "_tmp_/duplicate-kind.go")
-		assert(buildFuncCache("pkgName", filePath, []string{"A", "A"})).Equal(
+		assert(buildFuncCache("pkgName", filePath, []string{"A", "A"})).Equals(
 			base.ErrFnCacheDuplicateKindString.AddDebug("duplicate kind A"),
 		)
 	})
@@ -28,21 +28,21 @@ func TestBuildFuncCache(t *testing.T) {
 		assert := base.NewAssert(t)
 		filePath := path.Join(curDir, "_tmp_/illegal-kind.go")
 		assert(buildFuncCache("pkgName", filePath, []string{"T", "A"})).
-			Equal(base.ErrFnCacheIllegalKindString.AddDebug("illegal kind T"))
+			Equals(base.ErrFnCacheIllegalKindString.AddDebug("illegal kind T"))
 	})
 
 	t.Run("mkdir error", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		filePath := path.Join(curDir, "fn_cache_test.go", "error.go")
 		assert(buildFuncCache("pkgName", filePath, []string{"A"})).
-			Equal(base.ErrCacheMkdirAll)
+			Equals(base.ErrCacheMkdirAll)
 	})
 
 	t.Run("write to file error", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		filePath := path.Join(curDir, "_snapshot_")
 		assert(buildFuncCache("pkgName", filePath, []string{"A"})).
-			Equal(base.ErrCacheWriteFile)
+			Equals(base.ErrCacheWriteFile)
 	})
 
 	t.Run("kinds is empty", func(t *testing.T) {
@@ -50,7 +50,7 @@ func TestBuildFuncCache(t *testing.T) {
 		filePath := path.Join(curDir, "_tmp_/test-cache-01.go")
 		snapPath := path.Join(curDir, "_snapshot_/test-cache-01.snapshot")
 		assert(buildFuncCache("pkgName", filePath, []string{})).IsNil()
-		assert(base.ReadFromFile(filePath)).Equal(base.ReadFromFile(snapPath))
+		assert(base.ReadFromFile(filePath)).Equals(base.ReadFromFile(snapPath))
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestBuildFuncCache(t *testing.T) {
 			"BIUFSXAM", "AAAAAAAA", "MAXSFUIB",
 			"BIUFSXAMYZ", "BIUSXAMVYZ", "BIUFXAMVYZ",
 		})).IsNil()
-		assert(base.ReadFromFile(filePath)).Equal(base.ReadFromFile(snapPath))
+		assert(base.ReadFromFile(filePath)).Equals(base.ReadFromFile(snapPath))
 	})
 }
 

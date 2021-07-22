@@ -295,21 +295,21 @@ func TestAdapter(t *testing.T) {
 		<-waitCH
 		<-waitCH
 
-		assert(clientReceiver.GetOnOpenCount()).Equal(1)
-		assert(clientReceiver.GetOnCloseCount()).Equal(1)
-		assert(clientReceiver.GetOnErrorCount()).Equal(0)
-		assert(clientReceiver.GetOnStreamCount()).Equal(0)
+		assert(clientReceiver.GetOnOpenCount()).Equals(1)
+		assert(clientReceiver.GetOnCloseCount()).Equals(1)
+		assert(clientReceiver.GetOnErrorCount()).Equals(0)
+		assert(clientReceiver.GetOnStreamCount()).Equals(0)
 
-		assert(serverReceiver.GetOnOpenCount()).Equal(1)
-		assert(serverReceiver.GetOnCloseCount()).Equal(1)
-		assert(serverReceiver.GetOnErrorCount()).Equal(0)
-		assert(serverReceiver.GetOnStreamCount()).Equal(0)
+		assert(serverReceiver.GetOnOpenCount()).Equals(1)
+		assert(serverReceiver.GetOnCloseCount()).Equals(1)
+		assert(serverReceiver.GetOnErrorCount()).Equals(0)
+		assert(serverReceiver.GetOnStreamCount()).Equals(0)
 	}
 
 	t.Run("test basic", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(base.ErrNetClosingSuffix).
-			Equal("use of closed network connection")
+			Equals("use of closed network connection")
 
 		// check ErrNetClosingSuffix on all platform
 		waitCH := make(chan bool)

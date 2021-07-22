@@ -12,19 +12,19 @@ func TestTime(t *testing.T) {
 		assert := NewAssert(t)
 		assert(gTimeMaster).IsNotNil()
 		assert(string(defaultISODateBuffer)).
-			Equal("0000-00-00T00:00:00.000+00:00")
+			Equals("0000-00-00T00:00:00.000+00:00")
 		for i := 0; i < 100; i++ {
-			assert(string(intToStringCache2[i])).Equal(fmt.Sprintf("%02d", i))
+			assert(string(intToStringCache2[i])).Equals(fmt.Sprintf("%02d", i))
 		}
 		for i := 0; i < 1000; i++ {
-			assert(string(intToStringCache3[i])).Equal(fmt.Sprintf("%03d", i))
+			assert(string(intToStringCache3[i])).Equals(fmt.Sprintf("%03d", i))
 		}
 		for i := 0; i < 10000; i++ {
-			assert(string(intToStringCache4[i])).Equal(fmt.Sprintf("%04d", i))
+			assert(string(intToStringCache4[i])).Equals(fmt.Sprintf("%04d", i))
 		}
-		assert(timeMasterStatusNone).Equal(int32(0))
-		assert(timeMasterStatusRunning).Equal(int32(1))
-		assert(timeMasterStatusClosed).Equal(int32(2))
+		assert(timeMasterStatusNone).Equals(int32(0))
+		assert(timeMasterStatusRunning).Equals(int32(1))
+		assert(timeMasterStatusClosed).Equals(int32(2))
 	})
 }
 
@@ -66,7 +66,7 @@ func TestTimeMaster_Run(t *testing.T) {
 		time.Sleep(50 * time.Millisecond)
 		tm := (*timeInfo)(atomic.LoadPointer(&v1.timeNowPointer))
 		assert(IsTimeApproximatelyEqual(tm.time, time.Now())).IsTrue()
-		assert(tm.timeISOString).Equal(ConvertToIsoDateString(tm.time))
+		assert(tm.timeISOString).Equals(ConvertToIsoDateString(tm.time))
 		v1.Close()
 	})
 
@@ -114,7 +114,7 @@ func TestTimeMaster_Count(t *testing.T) {
 		assert := NewAssert(t)
 		v1 := newTimeMaster()
 		v1.Count()
-		assert(atomic.LoadInt64(&v1.timeSpeedCounter.total)).Equal(int64(1))
+		assert(atomic.LoadInt64(&v1.timeSpeedCounter.total)).Equals(int64(1))
 	})
 }
 
@@ -178,7 +178,7 @@ func TestConvertToIsoDateString(t *testing.T) {
 			"0000-01-01T00:00:00+00:00",
 		)
 		assert(ConvertToIsoDateString(v1)).
-			Equal("0000-01-01T00:00:00.000+00:00")
+			Equals("0000-01-01T00:00:00.000+00:00")
 	})
 
 	t.Run("year 9999", func(t *testing.T) {
@@ -189,7 +189,7 @@ func TestConvertToIsoDateString(t *testing.T) {
 		)
 		v1 = v1.Add(1000000 * time.Hour)
 		assert(ConvertToIsoDateString(v1)).
-			Equal("9999-01-30T16:00:00.000+00:00")
+			Equals("9999-01-30T16:00:00.000+00:00")
 	})
 
 	t.Run("test timezone", func(t *testing.T) {
@@ -200,28 +200,28 @@ func TestConvertToIsoDateString(t *testing.T) {
 			"2222-12-22T11:11:11.333-11:59",
 		)
 		assert(ConvertToIsoDateString(v1)).
-			Equal("2222-12-22T11:11:11.333-11:59")
+			Equals("2222-12-22T11:11:11.333-11:59")
 
 		v2, _ := time.Parse(
 			"2006-01-02T15:04:05.999Z07:00",
 			"2222-12-22T11:11:11.333+11:59",
 		)
 		assert(ConvertToIsoDateString(v2)).
-			Equal("2222-12-22T11:11:11.333+11:59")
+			Equals("2222-12-22T11:11:11.333+11:59")
 
 		v3, _ := time.Parse(
 			"2006-01-02T15:04:05.999Z07:00",
 			"2222-12-22T11:11:11.333+00:00",
 		)
 		assert(ConvertToIsoDateString(v3)).
-			Equal("2222-12-22T11:11:11.333+00:00")
+			Equals("2222-12-22T11:11:11.333+00:00")
 
 		v4, _ := time.Parse(
 			"2006-01-02T15:04:05.999Z07:00",
 			"2222-12-22T11:11:11.333-00:00",
 		)
 		assert(ConvertToIsoDateString(v4)).
-			Equal("2222-12-22T11:11:11.333+00:00")
+			Equals("2222-12-22T11:11:11.333+00:00")
 	})
 
 	t.Run("test", func(t *testing.T) {
@@ -236,7 +236,7 @@ func TestConvertToIsoDateString(t *testing.T) {
 				ConvertToIsoDateString(start),
 			)
 			assert(err).IsNil()
-			assert(parseTime.UnixNano()).Equal(start.UnixNano())
+			assert(parseTime.UnixNano()).Equals(start.UnixNano())
 			start = start.Add(2710991970000000)
 		}
 	})

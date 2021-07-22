@@ -33,7 +33,7 @@ func TestGetTLSServerConfig(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(GetTLSServerConfig("errorFile", "errorFile")).
-			Equal(base.GetTLSServerConfig("errorFile", "errorFile"))
+			Equals(base.GetTLSServerConfig("errorFile", "errorFile"))
 	})
 }
 
@@ -41,6 +41,6 @@ func TestGetTLSClientConfig(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(GetTLSClientConfig(true, nil)).
-			Equal(base.GetTLSClientConfig(true, nil))
+			Equals(base.GetTLSClientConfig(true, nil))
 	})
 }

@@ -20,7 +20,7 @@ func TestInitAESCipherAndNonce(t *testing.T) {
 	t.Run("test basic", func(t *testing.T) {
 		assert := NewAssert(t)
 		assert(aesCipher).IsNotNil()
-		assert(len(aesNonce)).Equal(12)
+		assert(len(aesNonce)).Equals(12)
 	})
 
 	t.Run("get keyBuffer error", func(t *testing.T) {
@@ -35,7 +35,7 @@ func TestInitAESCipherAndNonce(t *testing.T) {
 			}()
 
 			initAESCipherAndNonce()
-		})).Equal(io.EOF.Error())
+		})).Equals(io.EOF.Error())
 	})
 
 	t.Run("get nonceBuffer error", func(t *testing.T) {
@@ -54,7 +54,7 @@ func TestInitAESCipherAndNonce(t *testing.T) {
 			}()
 
 			initAESCipherAndNonce()
-		})).Equal(io.EOF.Error())
+		})).Equals(io.EOF.Error())
 	})
 
 	t.Run("block size error", func(t *testing.T) {
@@ -114,33 +114,33 @@ func TestIsNil(t *testing.T) {
 func TestMinInt(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(MinInt(1, 2)).Equal(1)
-		assert(MinInt(2, 1)).Equal(1)
+		assert(MinInt(1, 2)).Equals(1)
+		assert(MinInt(2, 1)).Equals(1)
 	})
 }
 
 func TestMaxInt(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(MaxInt(1, 2)).Equal(2)
-		assert(MaxInt(2, 1)).Equal(2)
+		assert(MaxInt(1, 2)).Equals(2)
+		assert(MaxInt(2, 1)).Equals(2)
 	})
 }
 
 func TestStringToBytesUnsafe(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(cap(StringToBytesUnsafe("hello"))).Equal(5)
-		assert(len(StringToBytesUnsafe("hello"))).Equal(5)
-		assert(string(StringToBytesUnsafe("hello"))).Equal("hello")
+		assert(cap(StringToBytesUnsafe("hello"))).Equals(5)
+		assert(len(StringToBytesUnsafe("hello"))).Equals(5)
+		assert(string(StringToBytesUnsafe("hello"))).Equals("hello")
 	})
 }
 
 func TestBytesToStringUnsafe(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(len(BytesToStringUnsafe([]byte("hello")))).Equal(5)
-		assert(BytesToStringUnsafe([]byte("hello"))).Equal("hello")
+		assert(len(BytesToStringUnsafe([]byte("hello")))).Equals(5)
+		assert(BytesToStringUnsafe([]byte("hello"))).Equals("hello")
 	})
 }
 
@@ -184,7 +184,7 @@ func TestGetSeed(t *testing.T) {
 		seed := GetSeed()
 		assert(seed > 10000).IsTrue()
 		for i := int64(0); i < 500; i++ {
-			assert(GetSeed()).Equal(seed + 1 + i)
+			assert(GetSeed()).Equals(seed + 1 + i)
 		}
 	})
 }
@@ -192,9 +192,9 @@ func TestGetSeed(t *testing.T) {
 func TestGetRandString(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(GetRandString(-1)).Equal("")
+		assert(GetRandString(-1)).Equals("")
 		for i := 0; i < 500; i++ {
-			assert(len(GetRandString(i))).Equal(i)
+			assert(len(GetRandString(i))).Equals(i)
 		}
 	})
 }
@@ -202,28 +202,28 @@ func TestGetRandString(t *testing.T) {
 func TestAddPrefixPerLine(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(AddPrefixPerLine("", "")).Equal("")
-		assert(AddPrefixPerLine("a", "")).Equal("a")
-		assert(AddPrefixPerLine("\n", "")).Equal("\n")
-		assert(AddPrefixPerLine("a\n", "")).Equal("a\n")
-		assert(AddPrefixPerLine("a\nb", "")).Equal("a\nb")
-		assert(AddPrefixPerLine("", "-")).Equal("-")
-		assert(AddPrefixPerLine("a", "-")).Equal("-a")
-		assert(AddPrefixPerLine("\n", "-")).Equal("-\n")
-		assert(AddPrefixPerLine("a\n", "-")).Equal("-a\n")
-		assert(AddPrefixPerLine("a\nb", "-")).Equal("-a\n-b")
+		assert(AddPrefixPerLine("", "")).Equals("")
+		assert(AddPrefixPerLine("a", "")).Equals("a")
+		assert(AddPrefixPerLine("\n", "")).Equals("\n")
+		assert(AddPrefixPerLine("a\n", "")).Equals("a\n")
+		assert(AddPrefixPerLine("a\nb", "")).Equals("a\nb")
+		assert(AddPrefixPerLine("", "-")).Equals("-")
+		assert(AddPrefixPerLine("a", "-")).Equals("-a")
+		assert(AddPrefixPerLine("\n", "-")).Equals("-\n")
+		assert(AddPrefixPerLine("a\n", "-")).Equals("-a\n")
+		assert(AddPrefixPerLine("a\nb", "-")).Equals("-a\n-b")
 	})
 }
 
 func TestConcatString(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(ConcatString("", "")).Equal("")
-		assert(ConcatString("a", "")).Equal("a")
-		assert(ConcatString("", "b")).Equal("b")
-		assert(ConcatString("a", "b")).Equal("ab")
-		assert(ConcatString("a", "b", "")).Equal("ab")
-		assert(ConcatString("a", "b", "c")).Equal("abc")
+		assert(ConcatString("", "")).Equals("")
+		assert(ConcatString("a", "")).Equals("a")
+		assert(ConcatString("", "b")).Equals("b")
+		assert(ConcatString("a", "b")).Equals("ab")
+		assert(ConcatString("a", "b", "")).Equals("ab")
+		assert(ConcatString("a", "b", "c")).Equals("abc")
 	})
 }
 
@@ -245,7 +245,7 @@ func TestAddFileLine(t *testing.T) {
 
 	t.Run("skip overflow", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(AddFileLine("header", 1000)).Equal("header")
+		assert(AddFileLine("header", 1000)).Equals("header")
 	})
 
 	t.Run("test", func(t *testing.T) {
@@ -259,13 +259,13 @@ func TestAddFileLine(t *testing.T) {
 func TestConvertOrdinalToString(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(ConvertOrdinalToString(0)).Equal("")
-		assert(ConvertOrdinalToString(1)).Equal("1st")
-		assert(ConvertOrdinalToString(2)).Equal("2nd")
-		assert(ConvertOrdinalToString(3)).Equal("3rd")
-		assert(ConvertOrdinalToString(4)).Equal("4th")
-		assert(ConvertOrdinalToString(10)).Equal("10th")
-		assert(ConvertOrdinalToString(100)).Equal("100th")
+		assert(ConvertOrdinalToString(0)).Equals("")
+		assert(ConvertOrdinalToString(1)).Equals("1st")
+		assert(ConvertOrdinalToString(2)).Equals("2nd")
+		assert(ConvertOrdinalToString(3)).Equals("3rd")
+		assert(ConvertOrdinalToString(4)).Equals("4th")
+		assert(ConvertOrdinalToString(10)).Equals("10th")
+		assert(ConvertOrdinalToString(100)).Equals("100th")
 	})
 }
 
@@ -344,13 +344,13 @@ func TestWaitAtLeastDurationWhenRunning(t *testing.T) {
 func TestIsTCPPortOccupied(t *testing.T) {
 	t.Run("not occupied", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(IsTCPPortOccupied(65535)).Equal(false)
+		assert(IsTCPPortOccupied(65535)).Equals(false)
 	})
 
 	t.Run("occupied", func(t *testing.T) {
 		assert := NewAssert(t)
 		Listener, _ := net.Listen("tcp", "127.0.0.1:65535")
-		assert(IsTCPPortOccupied(65535)).Equal(true)
+		assert(IsTCPPortOccupied(65535)).Equals(true)
 		_ = Listener.Close()
 	})
 }
@@ -359,7 +359,7 @@ func TestReadFromFile(t *testing.T) {
 	t.Run("file not exist", func(t *testing.T) {
 		assert := NewAssert(t)
 		v1, err1 := ReadFromFile("./no_file")
-		assert(v1).Equal("")
+		assert(v1).Equals("")
 		assert(err1).IsNotNil()
 		assert(strings.Contains(err1.Error(), "no_file")).IsTrue()
 	})
@@ -367,7 +367,7 @@ func TestReadFromFile(t *testing.T) {
 	t.Run("file exist", func(t *testing.T) {
 		assert := NewAssert(t)
 		_ = ioutil.WriteFile("./tmp_file", []byte("hello"), 0666)
-		assert(ReadFromFile("./tmp_file")).Equal("hello", nil)
+		assert(ReadFromFile("./tmp_file")).Equals("hello", nil)
 		_ = os.Remove("./tmp_file")
 	})
 }
@@ -397,7 +397,7 @@ func TestGetTLSServerConfig(t *testing.T) {
 			path.Join(curDir, "_cert_", "test.key"),
 		)
 		assert(ret).IsNotNil()
-		assert(ret).Equal(&tls.Config{
+		assert(ret).Equals(&tls.Config{
 			Certificates: []tls.Certificate{cert},
 			// Causes servers to use Go's default ciphersuite preferences,
 			// which are tuned to avoid attacks. Does nothing on clients.
@@ -468,7 +468,7 @@ func TestGetTLSClientConfig(t *testing.T) {
 		assert(ret).IsNotNil()
 		if ret != nil {
 			assert(ret.InsecureSkipVerify).IsFalse()
-			assert(len(ret.RootCAs.Subjects())).Equal(2)
+			assert(len(ret.RootCAs.Subjects())).Equals(2)
 		}
 		assert(e).IsNil()
 	})
@@ -483,7 +483,7 @@ func TestEncryptSessionEndpoint(t *testing.T) {
 		}()
 
 		assert := NewAssert(t)
-		assert(EncryptSessionEndpoint(1, 32)).Equal("", false)
+		assert(EncryptSessionEndpoint(1, 32)).Equals("", false)
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -491,7 +491,7 @@ func TestEncryptSessionEndpoint(t *testing.T) {
 		v, ok := EncryptSessionEndpoint(1, 32)
 		assert(len(v) > 0).IsTrue()
 		assert(ok).IsTrue()
-		assert(DecryptSessionEndpoint(v)).Equal(uint64(1), uint64(32), true)
+		assert(DecryptSessionEndpoint(v)).Equals(uint64(1), uint64(32), true)
 	})
 }
 
@@ -504,19 +504,19 @@ func TestDecryptSessionEndpoint(t *testing.T) {
 		}()
 
 		assert := NewAssert(t)
-		assert(DecryptSessionEndpoint("")).Equal(uint64(0), uint64(0), false)
+		assert(DecryptSessionEndpoint("")).Equals(uint64(0), uint64(0), false)
 	})
 
 	t.Run("base64 decode error", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(DecryptSessionEndpoint("err")).Equal(uint64(0), uint64(0), false)
+		assert(DecryptSessionEndpoint("err")).Equals(uint64(0), uint64(0), false)
 	})
 
 	t.Run("cipher open error", func(t *testing.T) {
 		assert := NewAssert(t)
 		errString := base64.StdEncoding.EncodeToString([]byte{1, 2, 3})
 		assert(DecryptSessionEndpoint(errString)).
-			Equal(uint64(0), uint64(0), false)
+			Equals(uint64(0), uint64(0), false)
 	})
 
 	t.Run("split arr length error", func(t *testing.T) {
@@ -528,7 +528,7 @@ func TestDecryptSessionEndpoint(t *testing.T) {
 			nil,
 		))
 		assert(DecryptSessionEndpoint(errString)).
-			Equal(uint64(0), uint64(0), false)
+			Equals(uint64(0), uint64(0), false)
 	})
 
 	t.Run("gatewayID parse error", func(t *testing.T) {
@@ -540,7 +540,7 @@ func TestDecryptSessionEndpoint(t *testing.T) {
 			nil,
 		))
 		assert(DecryptSessionEndpoint(errString)).
-			Equal(uint64(0), uint64(0), false)
+			Equals(uint64(0), uint64(0), false)
 	})
 
 	t.Run("sessionID parse error", func(t *testing.T) {
@@ -552,7 +552,7 @@ func TestDecryptSessionEndpoint(t *testing.T) {
 			nil,
 		))
 		assert(DecryptSessionEndpoint(errString)).
-			Equal(uint64(0), uint64(0), false)
+			Equals(uint64(0), uint64(0), false)
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -564,7 +564,7 @@ func TestDecryptSessionEndpoint(t *testing.T) {
 			nil,
 		))
 		assert(DecryptSessionEndpoint(errString)).
-			Equal(uint64(321), uint64(123456), true)
+			Equals(uint64(321), uint64(123456), true)
 	})
 }
 

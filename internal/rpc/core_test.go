@@ -13,7 +13,7 @@ func TestNewLogToScreenErrorStreamReceiver(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(NewLogToScreenErrorStreamReceiver("Server")).
-			Equal(&LogToScreenErrorStreamReceiver{prefix: "Server"})
+			Equals(&LogToScreenErrorStreamReceiver{prefix: "Server"})
 	})
 }
 
@@ -60,8 +60,8 @@ func TestNewTestStreamReceiver(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewTestStreamReceiver()
 		assert(v).IsNotNil()
-		assert(cap(v.streamCH)).Equal(10240)
-		assert(len(v.streamCH)).Equal(0)
+		assert(cap(v.streamCH)).Equals(10240)
+		assert(len(v.streamCH)).Equals(0)
 	})
 }
 
@@ -70,8 +70,8 @@ func TestTestStreamReceiver_OnReceiveStream(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewTestStreamReceiver()
 		v.OnReceiveStream(NewStream())
-		assert(cap(v.streamCH)).Equal(10240)
-		assert(len(v.streamCH)).Equal(1)
+		assert(cap(v.streamCH)).Equals(10240)
+		assert(len(v.streamCH)).Equals(1)
 	})
 }
 
@@ -103,9 +103,9 @@ func TestTestStreamReceiver_TotalStreams(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewTestStreamReceiver()
-		assert(v.TotalStreams()).Equal(0)
+		assert(v.TotalStreams()).Equals(0)
 		v.streamCH <- NewStream()
-		assert(v.TotalStreams()).Equal(1)
+		assert(v.TotalStreams()).Equals(1)
 	})
 }
 
@@ -114,7 +114,7 @@ func TestGetFuncKind(t *testing.T) {
 
 	t.Run("fn not func", func(t *testing.T) {
 		v := 3
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler must be a function",
@@ -123,7 +123,7 @@ func TestGetFuncKind(t *testing.T) {
 
 	t.Run("fn arguments length is zero", func(t *testing.T) {
 		v := func() {}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 1st argument type must be rpc.Runtime",
@@ -132,7 +132,7 @@ func TestGetFuncKind(t *testing.T) {
 
 	t.Run("fn 1st argument is not rpc.Runtime", func(t *testing.T) {
 		v := func(_ chan bool) {}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 1st argument type must be rpc.Runtime",
@@ -141,7 +141,7 @@ func TestGetFuncKind(t *testing.T) {
 
 	t.Run("fn without return", func(t *testing.T) {
 		v := func(rt Runtime) {}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler return type must be rpc.Return",
@@ -150,7 +150,7 @@ func TestGetFuncKind(t *testing.T) {
 
 	t.Run("fn return multiply value", func(t *testing.T) {
 		v := func(rt Runtime) (Return, bool) { return emptyReturn, true }
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler return type must be rpc.Return",
@@ -159,7 +159,7 @@ func TestGetFuncKind(t *testing.T) {
 
 	t.Run("fn return type not supported", func(t *testing.T) {
 		v := func(rt Runtime, _ bool) bool { return true }
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler return type must be rpc.Return",
@@ -173,7 +173,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 2nd argument type int32 is not supported",
@@ -187,7 +187,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 3rd argument type int32 is not supported",
@@ -201,7 +201,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 4th argument type int32 is not supported",
@@ -215,7 +215,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 5th argument type int32 is not supported",
@@ -229,7 +229,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 6th argument type int32 is not supported",
@@ -243,7 +243,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 7th argument type int32 is not supported",
@@ -257,7 +257,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 8th argument type int32 is not supported",
@@ -271,7 +271,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 9th argument type int32 is not supported",
@@ -285,7 +285,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 10th argument type int32 is not supported",
@@ -299,7 +299,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 11th argument type int32 is not supported",
@@ -313,7 +313,7 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal(
+		assert(getFuncKind(reflect.ValueOf(v))).Equals(
 			"",
 			base.ErrActionHandler.AddDebug(
 				"handler 12th argument type int32 is not supported",
@@ -327,41 +327,41 @@ func TestGetFuncKind(t *testing.T) {
 		) Return {
 			return rt.Reply(true)
 		}
-		assert(getFuncKind(reflect.ValueOf(v))).Equal("BIUFSXAMVYZ", nil)
+		assert(getFuncKind(reflect.ValueOf(v))).Equals("BIUFSXAMVYZ", nil)
 	})
 }
 
 func TestConvertTypeToString(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(convertTypeToString(nil)).Equal("<nil>")
-		assert(convertTypeToString(runtimeType)).Equal("rpc.Runtime")
-		assert(convertTypeToString(returnType)).Equal("rpc.Return")
-		assert(convertTypeToString(boolType)).Equal("rpc.Bool")
-		assert(convertTypeToString(int64Type)).Equal("rpc.Int64")
-		assert(convertTypeToString(uint64Type)).Equal("rpc.Uint64")
-		assert(convertTypeToString(float64Type)).Equal("rpc.Float64")
-		assert(convertTypeToString(stringType)).Equal("rpc.String")
-		assert(convertTypeToString(bytesType)).Equal("rpc.Bytes")
-		assert(convertTypeToString(arrayType)).Equal("rpc.Array")
-		assert(convertTypeToString(mapType)).Equal("rpc.Map")
-		assert(convertTypeToString(rtValueType)).Equal("rpc.RTValue")
-		assert(convertTypeToString(rtArrayType)).Equal("rpc.RTArray")
-		assert(convertTypeToString(rtMapType)).Equal("rpc.RTMap")
+		assert(convertTypeToString(nil)).Equals("<nil>")
+		assert(convertTypeToString(runtimeType)).Equals("rpc.Runtime")
+		assert(convertTypeToString(returnType)).Equals("rpc.Return")
+		assert(convertTypeToString(boolType)).Equals("rpc.Bool")
+		assert(convertTypeToString(int64Type)).Equals("rpc.Int64")
+		assert(convertTypeToString(uint64Type)).Equals("rpc.Uint64")
+		assert(convertTypeToString(float64Type)).Equals("rpc.Float64")
+		assert(convertTypeToString(stringType)).Equals("rpc.String")
+		assert(convertTypeToString(bytesType)).Equals("rpc.Bytes")
+		assert(convertTypeToString(arrayType)).Equals("rpc.Array")
+		assert(convertTypeToString(mapType)).Equals("rpc.Map")
+		assert(convertTypeToString(rtValueType)).Equals("rpc.RTValue")
+		assert(convertTypeToString(rtArrayType)).Equals("rpc.RTArray")
+		assert(convertTypeToString(rtMapType)).Equals("rpc.RTMap")
 		assert(convertTypeToString(reflect.ValueOf(make(chan bool)).Type())).
-			Equal("chan bool")
+			Equals("chan bool")
 	})
 }
 
 func TestGetFastKey(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(getFastKey("")).Equal(uint32(0))
-		assert(getFastKey("0")).Equal(uint32('0'<<16 | '0'<<8 | '0'))
-		assert(getFastKey("01")).Equal(uint32('0'<<16 | '1'<<8 | '1'))
-		assert(getFastKey("012")).Equal(uint32('0'<<16 | '1'<<8 | '2'))
-		assert(getFastKey("0123")).Equal(uint32('0'<<16 | '2'<<8 | '3'))
-		assert(getFastKey("01234")).Equal(uint32('0'<<16 | '2'<<8 | '4'))
+		assert(getFastKey("")).Equals(uint32(0))
+		assert(getFastKey("0")).Equals(uint32('0'<<16 | '0'<<8 | '0'))
+		assert(getFastKey("01")).Equals(uint32('0'<<16 | '1'<<8 | '1'))
+		assert(getFastKey("012")).Equals(uint32('0'<<16 | '1'<<8 | '2'))
+		assert(getFastKey("0123")).Equals(uint32('0'<<16 | '2'<<8 | '3'))
+		assert(getFastKey("01234")).Equals(uint32('0'<<16 | '2'<<8 | '4'))
 	})
 }
 
@@ -374,7 +374,7 @@ func TestMakeSystemErrorStream(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(ParseResponseStream(MakeSystemErrorStream(base.ErrStream))).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 }
 
@@ -382,7 +382,7 @@ func TestMakeInternalRequestStream(t *testing.T) {
 	t.Run("write error", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(MakeInternalRequestStream(false, 0, "#", "", make(chan bool))).
-			Equal(
+			Equals(
 				nil,
 				base.ErrUnsupportedValue.AddDebug(
 					"2nd argument: value type(chan bool) is not supported",
@@ -396,9 +396,9 @@ func TestMakeInternalRequestStream(t *testing.T) {
 		assert(v).IsNotNil()
 		assert(err).IsNil()
 		assert(v.HasStatusBitDebug()).IsFalse()
-		assert(v.GetDepth()).Equal(uint16(2))
-		assert(v.ReadString()).Equal("#", nil)
-		assert(v.ReadString()).Equal("from", nil)
+		assert(v.GetDepth()).Equals(uint16(2))
+		assert(v.ReadString()).Equals("#", nil)
+		assert(v.ReadString()).Equals("from", nil)
 		assert(v.IsReadFinish()).IsTrue()
 		v.Release()
 	})
@@ -409,10 +409,10 @@ func TestMakeInternalRequestStream(t *testing.T) {
 		assert(v).IsNotNil()
 		assert(err).IsNil()
 		assert(v.HasStatusBitDebug()).IsTrue()
-		assert(v.GetDepth()).Equal(uint16(5))
-		assert(v.ReadString()).Equal("#", nil)
-		assert(v.ReadString()).Equal("from", nil)
-		assert(v.ReadBool()).Equal(false, nil)
+		assert(v.GetDepth()).Equals(uint16(5))
+		assert(v.ReadString()).Equals("#", nil)
+		assert(v.ReadString()).Equals("from", nil)
+		assert(v.ReadBool()).Equals(false, nil)
 		assert(v.IsReadFinish()).IsTrue()
 		v.Release()
 	})
@@ -424,7 +424,7 @@ func TestParseResponseStream(t *testing.T) {
 		v := NewStream()
 		v.SetKind(StreamKindSystemErrorReport)
 		v.WriteInt64(3)
-		assert(ParseResponseStream(v)).Equal(nil, base.ErrStream)
+		assert(ParseResponseStream(v)).Equals(nil, base.ErrStream)
 	})
 
 	t.Run("errCode == 0", func(t *testing.T) {
@@ -432,7 +432,7 @@ func TestParseResponseStream(t *testing.T) {
 		v := NewStream()
 		v.SetKind(StreamKindSystemErrorReport)
 		v.WriteUint64(0)
-		assert(ParseResponseStream(v)).Equal(nil, base.ErrStream)
+		assert(ParseResponseStream(v)).Equals(nil, base.ErrStream)
 	})
 
 	t.Run("error code overflows", func(t *testing.T) {
@@ -441,7 +441,7 @@ func TestParseResponseStream(t *testing.T) {
 		v.SetKind(StreamKindRPCResponseError)
 		v.WriteUint64(1 << 32)
 		v.WriteString(base.ErrStream.GetMessage())
-		assert(ParseResponseStream(v)).Equal(nil, base.ErrStream)
+		assert(ParseResponseStream(v)).Equals(nil, base.ErrStream)
 	})
 
 	t.Run("error message Read error", func(t *testing.T) {
@@ -450,7 +450,7 @@ func TestParseResponseStream(t *testing.T) {
 		v.SetKind(StreamKindRPCResponseError)
 		v.WriteUint64(uint64(base.ErrorTypeSecurity))
 		v.WriteBool(true)
-		assert(ParseResponseStream(v)).Equal(nil, base.ErrStream)
+		assert(ParseResponseStream(v)).Equals(nil, base.ErrStream)
 	})
 
 	t.Run("error stream is not finish", func(t *testing.T) {
@@ -460,7 +460,7 @@ func TestParseResponseStream(t *testing.T) {
 		v.WriteUint64(uint64(base.ErrStream.GetCode()))
 		v.WriteString(base.ErrStream.GetMessage())
 		v.WriteBool(true)
-		assert(ParseResponseStream(v)).Equal(nil, base.ErrStream)
+		assert(ParseResponseStream(v)).Equals(nil, base.ErrStream)
 	})
 
 	t.Run("error stream ok", func(t *testing.T) {
@@ -469,7 +469,7 @@ func TestParseResponseStream(t *testing.T) {
 		v.SetKind(StreamKindRPCResponseError)
 		v.WriteUint64(uint64(base.ErrStream.GetCode()))
 		v.WriteString(base.ErrStream.GetMessage())
-		assert(ParseResponseStream(v)).Equal(nil, base.ErrStream)
+		assert(ParseResponseStream(v)).Equals(nil, base.ErrStream)
 	})
 
 	t.Run("kind unsupported", func(t *testing.T) {
@@ -477,7 +477,7 @@ func TestParseResponseStream(t *testing.T) {
 		v := NewStream()
 		v.SetKind(StreamKindRPCBoardCast)
 		v.WriteBool(true)
-		assert(ParseResponseStream(v)).Equal(nil, base.ErrStream)
+		assert(ParseResponseStream(v)).Equals(nil, base.ErrStream)
 	})
 
 	t.Run("Read ret ok", func(t *testing.T) {
@@ -485,7 +485,7 @@ func TestParseResponseStream(t *testing.T) {
 		v := NewStream()
 		v.SetKind(StreamKindRPCResponseOK)
 		v.WriteBool(true)
-		assert(ParseResponseStream(v)).Equal(true, nil)
+		assert(ParseResponseStream(v)).Equals(true, nil)
 	})
 }
 

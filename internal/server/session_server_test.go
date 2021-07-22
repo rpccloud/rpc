@@ -158,21 +158,21 @@ func TestChannel_In(t *testing.T) {
 	t.Run("old id without back stream", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &Channel{sequence: 10, backStream: rpc.NewStream()}
-		assert(v.In(0)).Equal(false, nil)
-		assert(v.In(9)).Equal(false, nil)
+		assert(v.In(0)).Equals(false, nil)
+		assert(v.In(9)).Equals(false, nil)
 	})
 
 	t.Run("old id with back stream", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &Channel{sequence: 10, backStream: rpc.NewStream()}
-		assert(v.In(10)).Equal(false, rpc.NewStream())
+		assert(v.In(10)).Equals(false, rpc.NewStream())
 	})
 
 	t.Run("new id", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &Channel{sequence: 10, backStream: rpc.NewStream(), backTimeNS: 1}
-		assert(v.In(11)).Equal(true, nil)
-		assert(v.backTimeNS, v.backStream).Equal(int64(0), nil)
+		assert(v.In(11)).Equals(true, nil)
+		assert(v.backTimeNS, v.backStream).Equals(int64(0), nil)
 	})
 }
 
@@ -182,8 +182,8 @@ func TestChannel_Out(t *testing.T) {
 		v := &Channel{sequence: 10}
 		stream := rpc.NewStream()
 		stream.SetCallbackID(0)
-		assert(v.Out(stream)).Equal(true)
-		assert(v.backTimeNS, v.backStream).Equal(int64(0), nil)
+		assert(v.Out(stream)).Equals(true)
+		assert(v.backTimeNS, v.backStream).Equals(int64(0), nil)
 	})
 
 	t.Run("id equals sequence", func(t *testing.T) {
@@ -191,8 +191,8 @@ func TestChannel_Out(t *testing.T) {
 		v := &Channel{sequence: 10}
 		stream := rpc.NewStream()
 		stream.SetCallbackID(10)
-		assert(v.Out(stream)).Equal(true)
-		assert(v.backTimeNS > 0, v.backStream != nil).Equal(true, true)
+		assert(v.Out(stream)).Equals(true)
+		assert(v.backTimeNS > 0, v.backStream != nil).Equals(true, true)
 	})
 
 	t.Run("id equals sequence, but not in", func(t *testing.T) {
@@ -200,8 +200,8 @@ func TestChannel_Out(t *testing.T) {
 		v := &Channel{sequence: 10, backTimeNS: 10}
 		stream := rpc.NewStream()
 		stream.SetCallbackID(10)
-		assert(v.Out(stream)).Equal(false)
-		assert(v.backTimeNS, v.backStream).Equal(int64(10), nil)
+		assert(v.Out(stream)).Equals(false)
+		assert(v.backTimeNS, v.backStream).Equals(int64(10), nil)
 	})
 
 	t.Run("id is wrong 01", func(t *testing.T) {
@@ -209,8 +209,8 @@ func TestChannel_Out(t *testing.T) {
 		v := &Channel{sequence: 10}
 		stream := rpc.NewStream()
 		stream.SetCallbackID(9)
-		assert(v.Out(stream)).Equal(false)
-		assert(v.backTimeNS, v.backStream).Equal(int64(0), nil)
+		assert(v.Out(stream)).Equals(false)
+		assert(v.backTimeNS, v.backStream).Equals(int64(0), nil)
 	})
 
 	t.Run("id is wrong 02", func(t *testing.T) {
@@ -218,8 +218,8 @@ func TestChannel_Out(t *testing.T) {
 		v := &Channel{sequence: 10}
 		stream := rpc.NewStream()
 		stream.SetCallbackID(11)
-		assert(v.Out(stream)).Equal(false)
-		assert(v.backTimeNS, v.backStream).Equal(int64(0), nil)
+		assert(v.Out(stream)).Equals(false)
+		assert(v.backTimeNS, v.backStream).Equals(int64(0), nil)
 	})
 }
 
@@ -260,7 +260,7 @@ func TestChannel_Clean(t *testing.T) {
 		v := &Channel{sequence: 10, backTimeNS: 1, backStream: nil}
 		v.Clean()
 		assert(v.sequence, v.backTimeNS, v.backStream).
-			Equal(uint64(10), int64(0), nil)
+			Equals(uint64(10), int64(0), nil)
 	})
 
 	t.Run("backStream is not nil", func(t *testing.T) {
@@ -268,7 +268,7 @@ func TestChannel_Clean(t *testing.T) {
 		v := &Channel{sequence: 10, backTimeNS: 1, backStream: rpc.NewStream()}
 		v.Clean()
 		assert(v.sequence, v.backTimeNS, v.backStream).
-			Equal(uint64(10), int64(0), nil)
+			Equals(uint64(10), int64(0), nil)
 	})
 }
 
@@ -294,7 +294,7 @@ func TestInitSession(t *testing.T) {
 		streamConn.OnReadBytes(stream.GetBuffer())
 		assert(netConn.isRunning).IsFalse()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 
 	t.Run("kind is not StreamKindConnectRequest", func(t *testing.T) {
@@ -317,7 +317,7 @@ func TestInitSession(t *testing.T) {
 		streamConn.OnReadBytes(stream.GetBuffer())
 		assert(netConn.isRunning).IsFalse()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 
 	t.Run("read session string error", func(t *testing.T) {
@@ -341,7 +341,7 @@ func TestInitSession(t *testing.T) {
 		streamConn.OnReadBytes(stream.GetBuffer())
 		assert(netConn.isRunning).IsFalse()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 
 	t.Run("read stream is not finish", func(t *testing.T) {
@@ -366,7 +366,7 @@ func TestInitSession(t *testing.T) {
 		streamConn.OnReadBytes(stream.GetBuffer())
 		assert(netConn.isRunning).IsFalse()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 
 	t.Run("max sessions limit", func(t *testing.T) {
@@ -392,7 +392,7 @@ func TestInitSession(t *testing.T) {
 		streamConn.OnReadBytes(stream.GetBuffer())
 
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrServerSessionSeedOverflows)
+			Equals(nil, base.ErrServerSessionSeedOverflows)
 	})
 
 	t.Run("stream is ok, create new session", func(t *testing.T) {
@@ -444,16 +444,16 @@ func TestInitSession(t *testing.T) {
 			streamConn.OnReadBytes(stream.GetBuffer())
 
 			if exist {
-				assert(sessionServer.totalSessions).Equal(int64(1))
+				assert(sessionServer.totalSessions).Equals(int64(1))
 			} else {
-				assert(sessionServer.totalSessions).Equal(int64(2))
+				assert(sessionServer.totalSessions).Equals(int64(2))
 				v, _ := sessionServer.GetSession(1)
-				assert(v.id).Equal(uint64(1))
-				assert(v.sessionServer).Equal(sessionServer)
-				assert(len(v.security)).Equal(32)
+				assert(v.id).Equals(uint64(1))
+				assert(v.sessionServer).Equals(sessionServer)
+				assert(len(v.security)).Equals(32)
 				assert(v.conn).IsNotNil()
-				assert(len(v.channels)).Equal(GetDefaultSessionConfig().numOfChannels)
-				assert(cap(v.channels)).Equal(GetDefaultSessionConfig().numOfChannels)
+				assert(len(v.channels)).Equals(GetDefaultSessionConfig().numOfChannels)
+				assert(cap(v.channels)).Equals(GetDefaultSessionConfig().numOfChannels)
 				nowNS := base.TimeNow().UnixNano()
 				assert(nowNS-v.activeTimeNS < int64(time.Second)).IsTrue()
 				assert(nowNS-v.activeTimeNS >= 0).IsTrue()
@@ -466,15 +466,15 @@ func TestInitSession(t *testing.T) {
 				config := sessionServer.config
 
 				assert(rs.GetKind()).
-					Equal(uint8(rpc.StreamKindConnectResponse))
+					Equals(uint8(rpc.StreamKindConnectResponse))
 				assert(rs.ReadString()).
-					Equal(fmt.Sprintf("%d-%s", v.id, v.security), nil)
-				assert(rs.ReadInt64()).Equal(int64(config.numOfChannels), nil)
-				assert(rs.ReadInt64()).Equal(int64(config.transLimit), nil)
+					Equals(fmt.Sprintf("%d-%s", v.id, v.security), nil)
+				assert(rs.ReadInt64()).Equals(int64(config.numOfChannels), nil)
+				assert(rs.ReadInt64()).Equals(int64(config.transLimit), nil)
 				assert(rs.ReadInt64()).
-					Equal(int64(config.heartbeatInterval/time.Millisecond), nil)
+					Equals(int64(config.heartbeatInterval/time.Millisecond), nil)
 				assert(rs.ReadInt64()).
-					Equal(int64(config.heartbeatTimeout/time.Millisecond), nil)
+					Equals(int64(config.heartbeatTimeout/time.Millisecond), nil)
 				assert(rs.IsReadFinish()).IsTrue()
 				assert(rs.CheckStream()).IsTrue()
 			}
@@ -490,12 +490,12 @@ func TestNewSession(t *testing.T) {
 			nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
 		)
 		v := newSession(3, sessionServer)
-		assert(v.id).Equal(uint64(3))
-		assert(v.sessionServer).Equal(sessionServer)
-		assert(len(v.security)).Equal(32)
+		assert(v.id).Equals(uint64(3))
+		assert(v.sessionServer).Equals(sessionServer)
+		assert(len(v.security)).Equals(32)
 		assert(v.conn).IsNil()
-		assert(len(v.channels)).Equal(GetDefaultSessionConfig().numOfChannels)
-		assert(cap(v.channels)).Equal(GetDefaultSessionConfig().numOfChannels)
+		assert(len(v.channels)).Equals(GetDefaultSessionConfig().numOfChannels)
+		assert(cap(v.channels)).Equals(GetDefaultSessionConfig().numOfChannels)
 		assert(base.TimeNow().UnixNano()-v.activeTimeNS < int64(time.Second)).
 			IsTrue()
 		assert(v.prev).IsNil()
@@ -529,7 +529,7 @@ func TestSession_TimeCheck(t *testing.T) {
 		session, _, _ := prepareTestSession(nil)
 		session.sessionServer.config.serverSessionTimeout = time.Second
 		session.sessionServer.TimeCheck(base.TimeNow().UnixNano())
-		assert(session.sessionServer.TotalSessions()).Equal(int64(1))
+		assert(session.sessionServer.TotalSessions()).Equals(int64(1))
 	})
 
 	t.Run("p.conn is nil, session is timeout", func(t *testing.T) {
@@ -538,7 +538,7 @@ func TestSession_TimeCheck(t *testing.T) {
 		session.sessionServer.config.serverSessionTimeout = 1 * time.Millisecond
 		time.Sleep(30 * time.Millisecond)
 		session.sessionServer.TimeCheck(base.TimeNow().UnixNano())
-		assert(session.sessionServer.TotalSessions()).Equal(int64(0))
+		assert(session.sessionServer.TotalSessions()).Equals(int64(0))
 	})
 
 	t.Run("p.channels is not timeout", func(t *testing.T) {
@@ -581,7 +581,7 @@ func TestSession_TimeCheck(t *testing.T) {
 		session.TimeCheck(base.TimeNow().UnixNano())
 
 		for i := 0; i < session.sessionServer.config.numOfChannels; i++ {
-			assert(session.channels[i].backTimeNS).Equal(int64(0))
+			assert(session.channels[i].backTimeNS).Equals(int64(0))
 			assert(session.channels[i].backStream).IsNil()
 		}
 	})
@@ -592,7 +592,7 @@ func TestSession_OutStream(t *testing.T) {
 		assert := base.NewAssert(t)
 		session, _, netConn := prepareTestSession(nil)
 		session.OutStream(nil)
-		assert(len(netConn.writeBuffer)).Equal(0)
+		assert(len(netConn.writeBuffer)).Equals(0)
 	})
 
 	t.Run("p.conn is nil", func(t *testing.T) {
@@ -601,8 +601,8 @@ func TestSession_OutStream(t *testing.T) {
 		stream := rpc.NewStream()
 		stream.SetKind(rpc.StreamKindRPCResponseOK)
 		session.OutStream(stream)
-		assert(len(netConn.writeBuffer)).Equal(0)
-		assert(session.channels[0].backStream).Equal(stream)
+		assert(len(netConn.writeBuffer)).Equals(0)
+		assert(session.channels[0].backStream).Equals(stream)
 	})
 
 	t.Run("stream kind error", func(t *testing.T) {
@@ -623,7 +623,7 @@ func TestSession_OutStream(t *testing.T) {
 			session.OutStream(stream)
 		}
 
-		assert(len(netConn.writeBuffer)).Equal(0)
+		assert(len(netConn.writeBuffer)).Equals(0)
 	})
 
 	t.Run("stream can not out", func(t *testing.T) {
@@ -644,7 +644,7 @@ func TestSession_OutStream(t *testing.T) {
 			session.OutStream(stream)
 		}
 
-		assert(len(netConn.writeBuffer)).Equal(0)
+		assert(len(netConn.writeBuffer)).Equals(0)
 	})
 
 	t.Run("stream can out", func(t *testing.T) {
@@ -668,7 +668,7 @@ func TestSession_OutStream(t *testing.T) {
 			session.OutStream(stream)
 		}
 
-		assert(netConn.writeBuffer).Equal(exceptBuffer)
+		assert(netConn.writeBuffer).Equals(exceptBuffer)
 	})
 
 	t.Run("stream is StreamKindRPCBoardCast", func(t *testing.T) {
@@ -694,7 +694,7 @@ func TestSession_OutStream(t *testing.T) {
 			session.OutStream(stream)
 		}
 
-		assert(netConn.writeBuffer).Equal(exceptBuffer)
+		assert(netConn.writeBuffer).Equals(exceptBuffer)
 	})
 }
 
@@ -705,7 +705,7 @@ func TestSession_OnConnOpen(t *testing.T) {
 		streamConn := adapter.NewStreamConn(false, syncConn, session)
 		syncConn.SetNext(streamConn)
 		session.OnConnOpen(streamConn)
-		assert(session.conn).Equal(streamConn)
+		assert(session.conn).Equals(streamConn)
 	})
 }
 
@@ -722,7 +722,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 		session.OnConnReadStream(streamConn, sendStream)
 		backStream := rpc.NewStream()
 		backStream.PutBytesTo(netConn.writeBuffer, 0)
-		assert(backStream.GetKind()).Equal(uint8(rpc.StreamKindPong))
+		assert(backStream.GetKind()).Equals(uint8(rpc.StreamKindPong))
 		assert(backStream.IsReadFinish()).IsTrue()
 	})
 
@@ -741,7 +741,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 		session.sessionServer.streamReceiver = streamReceiver
 		session.OnConnReadStream(streamConn, stream)
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 
 	t.Run("cbID > 0, accept = true, backStream = nil", func(t *testing.T) {
@@ -758,7 +758,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 		session.OnConnReadStream(streamConn, stream)
 
 		backStream := streamReceiver.GetStream()
-		assert(backStream.GetSessionID()).Equal(uint64(11))
+		assert(backStream.GetSessionID()).Equals(uint64(11))
 	})
 
 	t.Run("cbID > 0, accept = false, backStream != nil", func(t *testing.T) {
@@ -781,7 +781,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 		session.OnConnOpen(streamConn)
 		netConn.writeBuffer = make([]byte, 0)
 		session.OnConnReadStream(streamConn, stream)
-		assert(netConn.writeBuffer).Equal(cacheStream.GetBuffer())
+		assert(netConn.writeBuffer).Equals(cacheStream.GetBuffer())
 	})
 
 	t.Run("cbID > 0, accept = false, backStream == nil", func(t *testing.T) {
@@ -798,7 +798,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 		session.OnConnOpen(streamConn)
 		netConn.writeBuffer = make([]byte, 0)
 		session.OnConnReadStream(streamConn, stream)
-		assert(len(netConn.writeBuffer)).Equal(0)
+		assert(len(netConn.writeBuffer)).Equals(0)
 	})
 
 	t.Run("cbID == 0, accept = true, backStream = nil", func(t *testing.T) {
@@ -814,7 +814,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 
 		session.OnConnReadStream(streamConn, stream)
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 
 	t.Run("cbID == 0, kind err", func(t *testing.T) {
@@ -825,7 +825,7 @@ func TestSession_OnConnReadStream(t *testing.T) {
 		session.sessionServer.streamReceiver = streamReceiver
 		session.OnConnReadStream(streamConn, rpc.NewStream())
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 }
 
@@ -838,7 +838,7 @@ func TestSession_OnConnError(t *testing.T) {
 		session.sessionServer.streamReceiver = streamReceiver
 		session.OnConnError(streamConn, base.ErrStream)
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 }
 
@@ -859,8 +859,8 @@ func TestNewSessionPool(t *testing.T) {
 		assert := base.NewAssert(t)
 		sessionServer := &SessionServer{}
 		v := NewSessionPool(sessionServer)
-		assert(v.sessionServer).Equal(sessionServer)
-		assert(len(v.idMap)).Equal(0)
+		assert(v.sessionServer).Equals(sessionServer)
+		assert(len(v.idMap)).Equals(0)
 		assert(v.head).IsNil()
 	})
 }
@@ -878,7 +878,7 @@ func TestSessionPool_Add(t *testing.T) {
 		session := &Session{id: 10}
 		assert(v.Add(session)).IsTrue()
 		assert(v.Add(session)).IsFalse()
-		assert(v.sessionServer.totalSessions).Equal(int64(1))
+		assert(v.sessionServer.totalSessions).Equals(int64(1))
 	})
 
 	t.Run("add one session", func(t *testing.T) {
@@ -886,10 +886,10 @@ func TestSessionPool_Add(t *testing.T) {
 		v := NewSessionPool(&SessionServer{})
 		session := &Session{id: 10}
 		assert(v.Add(session)).IsTrue()
-		assert(v.sessionServer.totalSessions).Equal(int64(1))
-		assert(v.head).Equal(session)
-		assert(session.prev).Equal(nil)
-		assert(session.next).Equal(nil)
+		assert(v.sessionServer.totalSessions).Equals(int64(1))
+		assert(v.head).Equals(session)
+		assert(session.prev).Equals(nil)
+		assert(session.next).Equals(nil)
 	})
 
 	t.Run("add two sessions", func(t *testing.T) {
@@ -899,12 +899,12 @@ func TestSessionPool_Add(t *testing.T) {
 		session2 := &Session{id: 12}
 		assert(v.Add(session1)).IsTrue()
 		assert(v.Add(session2)).IsTrue()
-		assert(v.sessionServer.totalSessions).Equal(int64(2))
-		assert(v.head).Equal(session2)
-		assert(session2.prev).Equal(nil)
-		assert(session2.next).Equal(session1)
-		assert(session1.prev).Equal(session2)
-		assert(session1.next).Equal(nil)
+		assert(v.sessionServer.totalSessions).Equals(int64(2))
+		assert(v.head).Equals(session2)
+		assert(session2.prev).Equals(nil)
+		assert(session2.next).Equals(session1)
+		assert(session1.prev).Equals(session2)
+		assert(session1.next).Equals(nil)
 	})
 }
 
@@ -916,10 +916,10 @@ func TestSessionPool_Get(t *testing.T) {
 		session2 := &Session{id: 12}
 		assert(v.Add(session1)).IsTrue()
 		assert(v.Add(session2)).IsTrue()
-		assert(v.sessionServer.totalSessions).Equal(int64(2))
-		assert(v.Get(11)).Equal(session1, true)
-		assert(v.Get(12)).Equal(session2, true)
-		assert(v.Get(10)).Equal(nil, false)
+		assert(v.sessionServer.totalSessions).Equals(int64(2))
+		assert(v.Get(11)).Equals(session1, true)
+		assert(v.Get(12)).Equals(session2, true)
+		assert(v.Get(10)).Equals(nil, false)
 	})
 }
 
@@ -936,7 +936,7 @@ func TestSessionPool_TimeCheck(t *testing.T) {
 func TestSessionServerBasic(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(1024).Equal(1024)
+		assert(1024).Equals(1024)
 	})
 }
 
@@ -945,24 +945,24 @@ func TestNewSessionServer(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(base.RunWithCatchPanic(func() {
 			NewSessionServer(nil, GetDefaultSessionConfig(), nil)
-		})).Equal("streamReceiver is nil")
+		})).Equals("streamReceiver is nil")
 	})
 
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := rpc.NewTestStreamReceiver()
 		v := NewSessionServer(nil, GetDefaultSessionConfig(), streamReceiver)
-		assert(v.isRunning).Equal(false)
-		assert(v.sessionSeed).Equal(uint64(0))
-		assert(v.totalSessions).Equal(int64(0))
-		assert(len(v.sessionMapList)).Equal(1024)
-		assert(cap(v.sessionMapList)).Equal(1024)
-		assert(v.streamReceiver).Equal(streamReceiver)
-		assert(len(v.closeCH)).Equal(0)
-		assert(cap(v.closeCH)).Equal(1)
-		assert(v.config).Equal(GetDefaultSessionConfig())
-		assert(len(v.adapters)).Equal(0)
-		assert(cap(v.adapters)).Equal(0)
+		assert(v.isRunning).Equals(false)
+		assert(v.sessionSeed).Equals(uint64(0))
+		assert(v.totalSessions).Equals(int64(0))
+		assert(len(v.sessionMapList)).Equals(1024)
+		assert(cap(v.sessionMapList)).Equals(1024)
+		assert(v.streamReceiver).Equals(streamReceiver)
+		assert(len(v.closeCH)).Equals(0)
+		assert(cap(v.closeCH)).Equals(1)
+		assert(v.config).Equals(GetDefaultSessionConfig())
+		assert(len(v.adapters)).Equals(0)
+		assert(cap(v.adapters)).Equals(0)
 		assert(v.orcManager).IsNotNil()
 
 		for i := 0; i < 1024; i++ {
@@ -978,7 +978,7 @@ func TestSessionServer_TotalSessions(t *testing.T) {
 			nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
 		)
 		v.totalSessions = 54321
-		assert(v.TotalSessions()).Equal(int64(54321))
+		assert(v.TotalSessions()).Equals(int64(54321))
 	})
 }
 
@@ -1033,8 +1033,8 @@ func TestSessionServer_CreateSessionID(t *testing.T) {
 		v := NewSessionServer(
 			nil, GetDefaultSessionConfig(), rpc.NewTestStreamReceiver(),
 		)
-		assert(v.CreateSessionID()).Equal(uint64(1))
-		assert(v.CreateSessionID()).Equal(uint64(2))
+		assert(v.CreateSessionID()).Equals(uint64(1))
+		assert(v.CreateSessionID()).Equals(uint64(2))
 	})
 }
 
@@ -1050,9 +1050,9 @@ func TestSessionServer_TimeCheck(t *testing.T) {
 			assert(v.AddSession(session)).IsTrue()
 		}
 
-		assert(v.TotalSessions()).Equal(int64(1024))
+		assert(v.TotalSessions()).Equals(int64(1024))
 		v.TimeCheck(base.TimeNow().UnixNano())
-		assert(v.TotalSessions()).Equal(int64(0))
+		assert(v.TotalSessions()).Equals(int64(0))
 	})
 }
 
@@ -1102,7 +1102,7 @@ func TestSessionServer_Open(t *testing.T) {
 		v.isRunning = true
 		v.Open()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrServerAlreadyRunning)
+			Equals(nil, base.ErrServerAlreadyRunning)
 	})
 
 	t.Run("no valid adapter", func(t *testing.T) {
@@ -1111,7 +1111,7 @@ func TestSessionServer_Open(t *testing.T) {
 		v := NewSessionServer(nil, GetDefaultSessionConfig(), streamReceiver)
 		v.Open()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrServerNoListenersAvailable)
+			Equals(nil, base.ErrServerNoListenersAvailable)
 	})
 
 	t.Run("test", func(t *testing.T) {
@@ -1146,7 +1146,7 @@ func TestSessionServer_Open(t *testing.T) {
 			v.Close()
 			waitCH <- true
 		}()
-		assert(v.TotalSessions()).Equal(int64(1))
+		assert(v.TotalSessions()).Equals(int64(1))
 		v.Open()
 		<-waitCH
 	})
@@ -1182,7 +1182,7 @@ func TestSessionServer_Close(t *testing.T) {
 			waitCH <- true
 		}()
 
-		assert(v.TotalSessions()).Equal(int64(1))
+		assert(v.TotalSessions()).Equals(int64(1))
 		v.Open()
 		<-waitCH
 	})
@@ -1209,7 +1209,7 @@ func TestSessionServer_ReceiveStreamFromRouter(t *testing.T) {
 		stream.SetSessionID(11)
 		v.OutStream(stream)
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrServerSessionNotFound)
+			Equals(nil, base.ErrServerSessionNotFound)
 	})
 }
 
@@ -1237,7 +1237,7 @@ func TestSessionServer_OnConnReadStream(t *testing.T) {
 		stream.WriteString("")
 		stream.BuildStreamCheck()
 		streamConn.OnReadBytes(stream.GetBuffer())
-		assert(v.totalSessions).Equal(int64(1))
+		assert(v.totalSessions).Equals(int64(1))
 	})
 }
 
@@ -1254,7 +1254,7 @@ func TestSessionServer_OnConnError(t *testing.T) {
 		v.OnConnError(streamConn, base.ErrStream)
 		assert(netConn.isRunning).IsFalse()
 		assert(rpc.ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 	})
 }
 

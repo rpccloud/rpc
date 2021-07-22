@@ -52,23 +52,23 @@ func TestNewServer(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewServer(nil)
 		assert(v.config).IsNotNil()
-		assert(len(v.listeners), cap(v.listeners)).Equal(0, 0)
+		assert(len(v.listeners), cap(v.listeners)).Equals(0, 0)
 		assert(v.processor).IsNil()
 		assert(v.sessionServer).IsNil()
 		assert(v.streamHub).IsNil()
-		assert(len(v.mountServices), cap(v.mountServices)).Equal(0, 0)
+		assert(len(v.mountServices), cap(v.mountServices)).Equals(0, 0)
 	})
 
 	t.Run("config is not nil", func(t *testing.T) {
 		config := GetDefaultServerConfig()
 		assert := base.NewAssert(t)
 		v := NewServer(config)
-		assert(v.config).Equal(config)
-		assert(len(v.listeners), cap(v.listeners)).Equal(0, 0)
+		assert(v.config).Equals(config)
+		assert(len(v.listeners), cap(v.listeners)).Equals(0, 0)
 		assert(v.processor).IsNil()
 		assert(v.sessionServer).IsNil()
 		assert(v.streamHub).IsNil()
-		assert(len(v.mountServices), cap(v.mountServices)).Equal(0, 0)
+		assert(len(v.mountServices), cap(v.mountServices)).Equals(0, 0)
 	})
 }
 
@@ -90,7 +90,7 @@ func TestServer_Listen(t *testing.T) {
 
 		v.Listen("tcp", "127.0.0.1:1234", nil)
 		assert((<-errCH).GetCode()).
-			Equal(base.ErrServerAlreadyRunning.GetCode())
+			Equals(base.ErrServerAlreadyRunning.GetCode())
 		v.streamHub.Close()
 	})
 
@@ -98,8 +98,8 @@ func TestServer_Listen(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewServer(nil)
 		v.Listen("tcp", "127.0.0.1:1234", nil)
-		assert(len(v.listeners)).Equal(1)
-		assert(v.listeners[0]).Equal(&listener{
+		assert(len(v.listeners)).Equals(1)
+		assert(v.listeners[0]).Equals(&listener{
 			isDebug:   false,
 			network:   "tcp",
 			addr:      "127.0.0.1:1234",
@@ -126,7 +126,7 @@ func TestServer_ListenWithDebug(t *testing.T) {
 
 		v.ListenWithDebug("tcp", "127.0.0.1:1234", nil)
 		assert((<-errCH).GetCode()).
-			Equal(base.ErrServerAlreadyRunning.GetCode())
+			Equals(base.ErrServerAlreadyRunning.GetCode())
 		v.streamHub.Close()
 	})
 
@@ -134,8 +134,8 @@ func TestServer_ListenWithDebug(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewServer(nil)
 		v.ListenWithDebug("tcp", "127.0.0.1:1234", nil)
-		assert(len(v.listeners)).Equal(1)
-		assert(v.listeners[0]).Equal(&listener{
+		assert(len(v.listeners)).Equals(1)
+		assert(v.listeners[0]).Equals(&listener{
 			isDebug:   true,
 			network:   "tcp",
 			addr:      "127.0.0.1:1234",
@@ -162,7 +162,7 @@ func TestServer_AddService(t *testing.T) {
 		)
 		_, source := v.AddService("t", service, nil), base.GetFileLine(0)
 		assert(<-errCH).
-			Equal(base.ErrServerAlreadyRunning.AddDebug(source).Standardize())
+			Equals(base.ErrServerAlreadyRunning.AddDebug(source).Standardize())
 		v.streamHub.Close()
 	})
 
@@ -171,7 +171,7 @@ func TestServer_AddService(t *testing.T) {
 		service := rpc.NewService()
 		v := NewServer(nil)
 		_, source := v.AddService("t", service, nil), base.GetFileLine(0)
-		assert(v.mountServices[0]).Equal(rpc.NewServiceMeta(
+		assert(v.mountServices[0]).Equals(rpc.NewServiceMeta(
 			"t",
 			service,
 			source,
@@ -190,7 +190,7 @@ func TestServer_BuildReplyCache(t *testing.T) {
 		}()
 		assert := base.NewAssert(t)
 		v := NewServer(nil)
-		assert(v.BuildReplyCache()).Equal(nil)
+		assert(v.BuildReplyCache()).Equals(nil)
 	})
 
 	t.Run("output file exists", func(t *testing.T) {
@@ -202,7 +202,7 @@ func TestServer_BuildReplyCache(t *testing.T) {
 		_ = os.MkdirAll(path.Join(curDir, "cache", "rpc_action_cache.go"), 0555)
 		assert := base.NewAssert(t)
 		v := NewServer(nil)
-		assert(v.BuildReplyCache()).Equal(base.ErrCacheWriteFile.Standardize())
+		assert(v.BuildReplyCache()).Equals(base.ErrCacheWriteFile.Standardize())
 	})
 }
 
@@ -402,9 +402,9 @@ func TestServer_Open(t *testing.T) {
 			},
 		)
 		isOpen, source := v.Open(), base.GetFileLine(0)
-		assert(isOpen).Equal(false)
+		assert(isOpen).Equals(false)
 		assert(<-errCH).
-			Equal(base.ErrServerAlreadyRunning.AddDebug(source).Standardize())
+			Equals(base.ErrServerAlreadyRunning.AddDebug(source).Standardize())
 		v.streamHub.Close()
 	})
 

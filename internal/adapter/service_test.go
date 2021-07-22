@@ -341,7 +341,7 @@ func TestNewSyncClientService(t *testing.T) {
 
 			service := NewSyncClientService(adapter).(*syncClientService)
 
-			assert(service.adapter).Equal(adapter)
+			assert(service.adapter).Equals(adapter)
 			assert(service.conn).IsNil()
 			assert(service.orcManager).IsNotNil()
 		}
@@ -357,9 +357,9 @@ func TestNewSyncClientService(t *testing.T) {
 
 		service := NewSyncClientService(adapter)
 		assert(service).IsNil()
-		assert(receiver.GetOnErrorCount()).Equal(1)
+		assert(receiver.GetOnErrorCount()).Equals(1)
 		assert(receiver.GetError()).
-			Equal(base.ErrUnsupportedProtocol.AddDebug(
+			Equals(base.ErrUnsupportedProtocol.AddDebug(
 				"unsupported protocol err",
 			))
 	})
@@ -374,7 +374,7 @@ func TestNewSyncServerService(t *testing.T) {
 			)
 
 			service := NewSyncServerService(adapter).(*syncTCPServerService)
-			assert(service.adapter).Equal(adapter)
+			assert(service.adapter).Equals(adapter)
 			assert(service.ln).IsNil()
 			assert(service.orcManager).IsNotNil()
 		}
@@ -385,7 +385,7 @@ func TestNewSyncServerService(t *testing.T) {
 			)
 
 			service := NewSyncServerService(adapter).(*syncWSServerService)
-			assert(service.adapter).Equal(adapter)
+			assert(service.adapter).Equals(adapter)
 			assert(service.ln).IsNil()
 			assert(service.server).IsNil()
 			assert(service.orcManager).IsNotNil()
@@ -402,9 +402,9 @@ func TestNewSyncServerService(t *testing.T) {
 
 		service := NewSyncServerService(adapter)
 		assert(service).IsNil()
-		assert(receiver.GetOnErrorCount()).Equal(1)
+		assert(receiver.GetOnErrorCount()).Equals(1)
 		assert(receiver.GetError()).
-			Equal(base.ErrUnsupportedProtocol.AddDebug(
+			Equals(base.ErrUnsupportedProtocol.AddDebug(
 				"unsupported protocol err",
 			))
 	})
@@ -444,49 +444,49 @@ func TestSyncTCPServerService_Run(t *testing.T) {
 	t.Run("tcp run error", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		receiver, runOK := syncServerTestRun("tcp", false, true)
-		assert(runOK).Equal(true)
+		assert(runOK).Equals(true)
 		assert(receiver.GetError()).
-			Equal(base.ErrSyncTCPServerServiceAccept.AddDebug(io.EOF.Error()))
-		assert(receiver.GetOnOpenCount()).Equal(0)
-		assert(receiver.GetOnCloseCount()).Equal(0)
-		assert(receiver.GetOnStreamCount()).Equal(0)
+			Equals(base.ErrSyncTCPServerServiceAccept.AddDebug(io.EOF.Error()))
+		assert(receiver.GetOnOpenCount()).Equals(0)
+		assert(receiver.GetOnCloseCount()).Equals(0)
+		assert(receiver.GetOnStreamCount()).Equals(0)
 		assert(receiver.GetOnErrorCount() > 0).IsTrue()
 	})
 
 	t.Run("tcp run ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		receiver, runOK := syncServerTestRun("tcp", false, false)
-		assert(runOK).Equal(true)
+		assert(runOK).Equals(true)
 		assert(receiver.GetError()).IsNil()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(1)
-		assert(receiver.GetOnStreamCount()).Equal(0)
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(1)
+		assert(receiver.GetOnStreamCount()).Equals(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 
 	t.Run("tls run error", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		receiver, runOK := syncServerTestRun("tcp", true, true)
 
-		assert(runOK).Equal(true)
+		assert(runOK).Equals(true)
 		assert(receiver.GetError()).
-			Equal(base.ErrSyncTCPServerServiceAccept.AddDebug(io.EOF.Error()))
-		assert(receiver.GetOnOpenCount()).Equal(0)
-		assert(receiver.GetOnCloseCount()).Equal(0)
-		assert(receiver.GetOnStreamCount()).Equal(0)
+			Equals(base.ErrSyncTCPServerServiceAccept.AddDebug(io.EOF.Error()))
+		assert(receiver.GetOnOpenCount()).Equals(0)
+		assert(receiver.GetOnCloseCount()).Equals(0)
+		assert(receiver.GetOnStreamCount()).Equals(0)
 		assert(receiver.GetOnErrorCount() > 0).IsTrue()
 	})
 
 	t.Run("tls run ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		receiver, runOK := syncServerTestRun("tcp", true, false)
-		assert(runOK).Equal(true)
+		assert(runOK).Equals(true)
 
 		assert(receiver.GetError()).IsNil()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(1)
-		assert(receiver.GetOnStreamCount()).Equal(0)
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(1)
+		assert(receiver.GetOnStreamCount()).Equals(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 }
 
@@ -569,49 +569,49 @@ func TestSyncWSServerService_Run(t *testing.T) {
 		assert := base.NewAssert(t)
 		receiver, runOK := syncServerTestRun("ws", false, true)
 
-		assert(runOK).Equal(true)
+		assert(runOK).Equals(true)
 		assert(receiver.GetError()).
-			Equal(base.ErrSyncWSServerServiceServe.AddDebug(io.EOF.Error()))
-		assert(receiver.GetOnOpenCount()).Equal(0)
-		assert(receiver.GetOnCloseCount()).Equal(0)
-		assert(receiver.GetOnStreamCount()).Equal(0)
+			Equals(base.ErrSyncWSServerServiceServe.AddDebug(io.EOF.Error()))
+		assert(receiver.GetOnOpenCount()).Equals(0)
+		assert(receiver.GetOnCloseCount()).Equals(0)
+		assert(receiver.GetOnStreamCount()).Equals(0)
 		assert(receiver.GetOnErrorCount() > 0).IsTrue()
 	})
 
 	t.Run("ws run ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		receiver, runOK := syncServerTestRun("ws", false, false)
-		assert(runOK).Equal(true)
+		assert(runOK).Equals(true)
 		assert(receiver.GetError()).IsNil()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(1)
-		assert(receiver.GetOnStreamCount()).Equal(0)
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(1)
+		assert(receiver.GetOnStreamCount()).Equals(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 
 	t.Run("tls run error", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		receiver, runOK := syncServerTestRun("tcp", true, true)
 
-		assert(runOK).Equal(true)
+		assert(runOK).Equals(true)
 		assert(receiver.GetError()).
-			Equal(base.ErrSyncTCPServerServiceAccept.AddDebug(io.EOF.Error()))
-		assert(receiver.GetOnOpenCount()).Equal(0)
-		assert(receiver.GetOnCloseCount()).Equal(0)
-		assert(receiver.GetOnStreamCount()).Equal(0)
+			Equals(base.ErrSyncTCPServerServiceAccept.AddDebug(io.EOF.Error()))
+		assert(receiver.GetOnOpenCount()).Equals(0)
+		assert(receiver.GetOnCloseCount()).Equals(0)
+		assert(receiver.GetOnStreamCount()).Equals(0)
 		assert(receiver.GetOnErrorCount() > 0).IsTrue()
 	})
 
 	t.Run("tls run ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		receiver, runOK := syncServerTestRun("tcp", true, false)
-		assert(runOK).Equal(true)
+		assert(runOK).Equals(true)
 
 		assert(receiver.GetError()).IsNil()
-		assert(receiver.GetOnOpenCount()).Equal(1)
-		assert(receiver.GetOnCloseCount()).Equal(1)
-		assert(receiver.GetOnStreamCount()).Equal(0)
-		assert(receiver.GetOnErrorCount()).Equal(0)
+		assert(receiver.GetOnOpenCount()).Equals(1)
+		assert(receiver.GetOnCloseCount()).Equals(1)
+		assert(receiver.GetOnStreamCount()).Equals(0)
+		assert(receiver.GetOnErrorCount()).Equals(0)
 	})
 
 }
@@ -669,10 +669,10 @@ func TestSyncClientService(t *testing.T) {
 			receiver, client := syncClientTest(
 				it.isTLS, it.network, it.network, addr,
 			)
-			assert(receiver.GetOnOpenCount()).Equal(1)
-			assert(receiver.GetOnCloseCount()).Equal(1)
-			assert(receiver.GetOnErrorCount()).Equal(0)
-			assert(receiver.GetOnStreamCount()).Equal(0)
+			assert(receiver.GetOnOpenCount()).Equals(1)
+			assert(receiver.GetOnCloseCount()).Equals(1)
+			assert(receiver.GetOnErrorCount()).Equals(0)
+			assert(receiver.GetOnStreamCount()).Equals(0)
 			assert(client.conn).IsNil()
 		}
 	})
@@ -699,10 +699,10 @@ func TestSyncClientService(t *testing.T) {
 				"dial",
 			)).IsTrue()
 
-			assert(receiver.GetOnOpenCount()).Equal(0)
-			assert(receiver.GetOnCloseCount()).Equal(0)
-			assert(receiver.GetOnErrorCount()).Equal(1)
-			assert(receiver.GetOnStreamCount()).Equal(0)
+			assert(receiver.GetOnOpenCount()).Equals(0)
+			assert(receiver.GetOnCloseCount()).Equals(0)
+			assert(receiver.GetOnErrorCount()).Equals(1)
+			assert(receiver.GetOnStreamCount()).Equals(0)
 			assert(client.conn).IsNil()
 		}
 	})
@@ -719,13 +719,13 @@ func TestSyncClientService(t *testing.T) {
 			)
 
 			assert(receiver.GetError()).
-				Equal(base.ErrUnsupportedProtocol.AddDebug(
+				Equals(base.ErrUnsupportedProtocol.AddDebug(
 					"unsupported protocol err",
 				))
-			assert(receiver.GetOnOpenCount()).Equal(0)
-			assert(receiver.GetOnCloseCount()).Equal(0)
-			assert(receiver.GetOnErrorCount()).Equal(1)
-			assert(receiver.GetOnStreamCount()).Equal(0)
+			assert(receiver.GetOnOpenCount()).Equals(0)
+			assert(receiver.GetOnCloseCount()).Equals(0)
+			assert(receiver.GetOnErrorCount()).Equals(1)
+			assert(receiver.GetOnStreamCount()).Equals(0)
 			assert(client.conn).IsNil()
 		}
 	})

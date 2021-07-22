@@ -19,7 +19,7 @@ func TestRuntime_lock(t *testing.T) {
 		assert := base.NewAssert(t)
 		thread := testThread
 		v := Runtime{id: thread.top.lockStatus, thread: thread}
-		assert(v.lock()).Equal(thread)
+		assert(v.lock()).Equals(thread)
 		assert(v.unlock()).IsTrue()
 	})
 }
@@ -41,8 +41,8 @@ func TestRuntime_unlock(t *testing.T) {
 			v.unlock()
 		})).IsNil()
 		// if unlock is success, the thread can lock again
-		assert(v.lock()).Equal(thread)
-		assert(v.unlock()).Equal(true)
+		assert(v.lock()).Equals(thread)
+		assert(v.unlock()).Equals(true)
 	})
 }
 
@@ -53,7 +53,7 @@ func TestRuntime_Reply(t *testing.T) {
 		assert(base.RunWithSubscribePanic(func() {
 			v := Runtime{}
 			_, source = v.Reply(true), base.GetFileLine(0)
-		})).Equal(
+		})).Equals(
 			base.ErrRuntimeIllegalInCurrentGoroutine.AddDebug(source),
 		)
 	})
@@ -64,7 +64,7 @@ func TestRuntime_Reply(t *testing.T) {
 			testWithProcessorAndRuntime(func(_ *Processor, rt Runtime) Return {
 				return rt.Reply(true)
 			}, nil),
-		)).Equal(true, nil)
+		)).Equals(true, nil)
 	})
 
 	t.Run("test ok (Error)", func(t *testing.T) {
@@ -75,10 +75,10 @@ func TestRuntime_Reply(t *testing.T) {
 				err := base.ErrStream.AddDebug("error")
 				ret, s := rt.Reply(err), base.GetFileLine(0)
 				source = rt.thread.GetActionNode().path + " " + s
-				assert(ret).Equal(emptyReturn)
+				assert(ret).Equals(emptyReturn)
 				return ret
 			}, nil),
-		)).Equal(
+		)).Equals(
 			nil,
 			base.ErrStream.AddDebug("error").AddDebug(source).Standardize(),
 		)
@@ -92,10 +92,10 @@ func TestRuntime_Reply(t *testing.T) {
 				err := base.ErrStream.AddDebug("error")
 				ret, s := rt.Reply(err), base.GetFileLine(0)
 				source = rt.thread.GetActionNode().path + " " + s
-				assert(ret).Equal(emptyReturn)
+				assert(ret).Equals(emptyReturn)
 				return ret
 			}, nil),
-		)).Equal(
+		)).Equals(
 			nil,
 			base.ErrStream.AddDebug("error").AddDebug(source).Standardize(),
 		)
@@ -108,10 +108,10 @@ func TestRuntime_Reply(t *testing.T) {
 			testWithProcessorAndRuntime(func(_ *Processor, rt Runtime) Return {
 				ret, s := rt.Reply((*base.Error)(nil)), base.GetFileLine(0)
 				source = rt.thread.GetActionNode().path + " " + s
-				assert(ret).Equal(emptyReturn)
+				assert(ret).Equals(emptyReturn)
 				return ret
 			}, nil),
-		)).Equal(
+		)).Equals(
 			nil,
 			base.ErrUnsupportedValue.
 				AddDebug("value is nil").
@@ -127,10 +127,10 @@ func TestRuntime_Reply(t *testing.T) {
 			testWithProcessorAndRuntime(func(_ *Processor, rt Runtime) Return {
 				ret, s := rt.Reply((*base.Error)(nil)), base.GetFileLine(0)
 				source = rt.thread.GetActionNode().path + " " + s
-				assert(ret).Equal(emptyReturn)
+				assert(ret).Equals(emptyReturn)
 				return ret
 			}, nil),
-		)).Equal(
+		)).Equals(
 			nil,
 			base.ErrUnsupportedValue.
 				AddDebug("value is nil").
@@ -145,7 +145,7 @@ func TestRuntime_Post(t *testing.T) {
 		assert := base.NewAssert(t)
 		ret, source := Runtime{}.Post("", "Msg", "HI"), base.GetFileLine(0)
 		assert(ret).
-			Equal(base.ErrRuntimeIllegalInCurrentGoroutine.AddDebug(source))
+			Equals(base.ErrRuntimeIllegalInCurrentGoroutine.AddDebug(source))
 	})
 
 	t.Run("Post EndPoint error", func(t *testing.T) {
@@ -158,7 +158,7 @@ func TestRuntime_Post(t *testing.T) {
 			},
 			nil,
 		)
-		assert(e).Equal(base.ErrRuntimePostEndpoint)
+		assert(e).Equals(base.ErrRuntimePostEndpoint)
 	})
 
 	t.Run("Post value not supported", func(t *testing.T) {
@@ -171,7 +171,7 @@ func TestRuntime_Post(t *testing.T) {
 			},
 			nil,
 		)
-		assert(e).Equal(base.ErrUnsupportedValue.AddDebug(base.ConcatString(
+		assert(e).Equals(base.ErrUnsupportedValue.AddDebug(base.ConcatString(
 			"value type(chan bool) is not supported",
 		)))
 	})
@@ -187,11 +187,11 @@ func TestRuntime_Post(t *testing.T) {
 			nil,
 		)
 		assert(e).IsNil()
-		assert(stream.GetKind()).Equal(uint8(StreamKindRPCBoardCast))
-		assert(stream.GetGatewayID()).Equal(uint64(1234))
-		assert(stream.GetSessionID()).Equal(uint64(5678))
-		assert(stream.Read()).Equal("#.test%Msg", nil)
-		assert(stream.Read()).Equal("HI", nil)
+		assert(stream.GetKind()).Equals(uint8(StreamKindRPCBoardCast))
+		assert(stream.GetGatewayID()).Equals(uint64(1234))
+		assert(stream.GetSessionID()).Equals(uint64(5678))
+		assert(stream.Read()).Equals("#.test%Msg", nil)
+		assert(stream.Read()).Equals("HI", nil)
 		assert(stream.IsReadFinish()).IsTrue()
 	})
 }
@@ -200,7 +200,7 @@ func TestRuntime_Call(t *testing.T) {
 	t.Run("thread lock error", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		ret, source := Runtime{}.Call("#"), base.GetFileLine(0)
-		assert(ret).Equal(RTValue{
+		assert(ret).Equals(RTValue{
 			err: base.ErrRuntimeIllegalInCurrentGoroutine.AddDebug(source),
 		})
 	})
@@ -220,7 +220,7 @@ func TestRuntime_Call(t *testing.T) {
 				source2 = rt.thread.GetActionNode().path + " " + s2
 				return ret
 			}, nil),
-		)).Equal(nil, base.ErrUnsupportedValue.
+		)).Equals(nil, base.ErrUnsupportedValue.
 			AddDebug("2nd argument: value type(chan bool) is not supported").
 			AddDebug(source1).AddDebug(source2).Standardize(),
 		)
@@ -250,7 +250,7 @@ func TestRuntime_Call(t *testing.T) {
 				},
 				nil,
 			),
-		)).Equal(nil, base.ErrCallOverflow.
+		)).Equals(nil, base.ErrCallOverflow.
 			AddDebug("call #.test:SayHello level(1) overflows").
 			AddDebug(source1).AddDebug(source2).Standardize(),
 		)
@@ -266,7 +266,7 @@ func TestRuntime_Call(t *testing.T) {
 				},
 				nil,
 			),
-		)).Equal("hello ts", nil)
+		)).Equals("hello ts", nil)
 	})
 }
 
@@ -277,8 +277,8 @@ func TestRuntime_NewRTArray(t *testing.T) {
 		for i := 0; i < 100; i++ {
 			testRuntime.thread.Reset()
 			v := Runtime{}.NewRTArray(i)
-			assert(v.rt).Equal(Runtime{})
-			assert(v.items).Equal(nil)
+			assert(v.rt).Equals(Runtime{})
+			assert(v.items).Equals(nil)
 		}
 	})
 
@@ -288,8 +288,8 @@ func TestRuntime_NewRTArray(t *testing.T) {
 		for i := 0; i < 100; i++ {
 			testRuntime.thread.Reset()
 			v := testRuntime.NewRTArray(i)
-			assert(v.rt).Equal(testRuntime)
-			assert(len(*v.items), cap(*v.items)).Equal(0, i)
+			assert(v.rt).Equals(testRuntime)
+			assert(len(*v.items), cap(*v.items)).Equals(0, i)
 		}
 	})
 }
@@ -301,8 +301,8 @@ func TestRuntime_NewRTMap(t *testing.T) {
 		for i := 0; i < 100; i++ {
 			testRuntime.thread.Reset()
 			v := Runtime{}.NewRTMap(i)
-			assert(v.rt).Equal(Runtime{})
-			assert(v.items).Equal(nil)
+			assert(v.rt).Equals(Runtime{})
+			assert(v.items).Equals(nil)
 		}
 	})
 
@@ -312,8 +312,8 @@ func TestRuntime_NewRTMap(t *testing.T) {
 		for i := 0; i < 100; i++ {
 			testRuntime.thread.Reset()
 			v := testRuntime.NewRTMap(i)
-			assert(v.rt).Equal(testRuntime)
-			assert(len(*v.items), cap(*v.items)).Equal(0, i)
+			assert(v.rt).Equals(testRuntime)
+			assert(len(*v.items), cap(*v.items)).Equals(0, i)
 		}
 	})
 }
@@ -322,7 +322,7 @@ func TestRuntime_GetPostEndPoint(t *testing.T) {
 	t.Run("lock error", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := Runtime{}
-		assert(v.GetPostEndPoint()).Equal("")
+		assert(v.GetPostEndPoint()).Equals("")
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -332,7 +332,7 @@ func TestRuntime_GetPostEndPoint(t *testing.T) {
 		v.thread.top.stream.SetGatewayID(13)
 		v.thread.top.stream.SetSessionID(15)
 		assert(base.DecryptSessionEndpoint(v.GetPostEndPoint())).
-			Equal(uint64(13), uint64(15), true)
+			Equals(uint64(13), uint64(15), true)
 		v.thread.top.stream = nil
 	})
 }
@@ -341,18 +341,18 @@ func TestRuntime_GetServiceConfig(t *testing.T) {
 	t.Run("runtime is invalid", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := Runtime{}
-		assert(v.GetServiceConfig("name")).Equal(nil, false)
+		assert(v.GetServiceConfig("name")).Equals(nil, false)
 	})
 
 	t.Run("action node is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(testRuntime.GetServiceConfig("name")).Equal(nil, false)
+		assert(testRuntime.GetServiceConfig("name")).Equals(nil, false)
 	})
 
 	t.Run("service node is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.top.actionNode = unsafe.Pointer(&rpcActionNode{})
-		assert(testRuntime.GetServiceConfig("name")).Equal(nil, false)
+		assert(testRuntime.GetServiceConfig("name")).Equals(nil, false)
 		testRuntime.thread.top.actionNode = nil
 	})
 
@@ -360,7 +360,7 @@ func TestRuntime_GetServiceConfig(t *testing.T) {
 		assert := base.NewAssert(t)
 		testWithProcessorAndRuntime(
 			func(processor *Processor, rt Runtime) Return {
-				assert(rt.GetServiceConfig("name")).Equal(nil, false)
+				assert(rt.GetServiceConfig("name")).Equals(nil, false)
 				return rt.Reply(true)
 			},
 			nil,
@@ -371,7 +371,7 @@ func TestRuntime_GetServiceConfig(t *testing.T) {
 		assert := base.NewAssert(t)
 		testWithProcessorAndRuntime(
 			func(processor *Processor, rt Runtime) Return {
-				assert(rt.GetServiceConfig("name")).Equal("kitty", true)
+				assert(rt.GetServiceConfig("name")).Equals("kitty", true)
 				return rt.Reply(true)
 			},
 			Map{"name": "kitty"},
@@ -383,18 +383,18 @@ func TestRuntime_SetServiceConfig(t *testing.T) {
 	t.Run("runtime is invalid", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := Runtime{}
-		assert(v.SetServiceConfig("name", "kitty")).Equal(false)
+		assert(v.SetServiceConfig("name", "kitty")).Equals(false)
 	})
 
 	t.Run("action node is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(testRuntime.SetServiceConfig("name", "kitty")).Equal(false)
+		assert(testRuntime.SetServiceConfig("name", "kitty")).Equals(false)
 	})
 
 	t.Run("service node is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.top.actionNode = unsafe.Pointer(&rpcActionNode{})
-		assert(testRuntime.SetServiceConfig("name", "kitty")).Equal(false)
+		assert(testRuntime.SetServiceConfig("name", "kitty")).Equals(false)
 		testRuntime.thread.top.actionNode = nil
 	})
 
@@ -402,8 +402,8 @@ func TestRuntime_SetServiceConfig(t *testing.T) {
 		assert := base.NewAssert(t)
 		testWithProcessorAndRuntime(
 			func(processor *Processor, rt Runtime) Return {
-				assert(rt.SetServiceConfig("name", "kitty")).Equal(true)
-				assert(rt.GetServiceConfig("name")).Equal("kitty", true)
+				assert(rt.SetServiceConfig("name", "kitty")).Equals(true)
+				assert(rt.GetServiceConfig("name")).Equals("kitty", true)
 				return rt.Reply(true)
 			},
 			nil,
@@ -414,9 +414,9 @@ func TestRuntime_SetServiceConfig(t *testing.T) {
 		assert := base.NewAssert(t)
 		testWithProcessorAndRuntime(
 			func(processor *Processor, rt Runtime) Return {
-				assert(rt.GetServiceConfig("name")).Equal("doggy", true)
-				assert(rt.SetServiceConfig("name", "kitty")).Equal(true)
-				assert(rt.GetServiceConfig("name")).Equal("kitty", true)
+				assert(rt.GetServiceConfig("name")).Equals("doggy", true)
+				assert(rt.SetServiceConfig("name", "kitty")).Equals(true)
+				assert(rt.GetServiceConfig("name")).Equals("kitty", true)
 				return rt.Reply(true)
 			},
 			Map{"name": "doggy"},
@@ -431,7 +431,7 @@ func TestRuntime_parseResponseStream(t *testing.T) {
 		v := NewStream()
 		v.SetKind(StreamKindRPCResponseError)
 		v.WriteInt64(3)
-		assert(testRuntime.parseResponseStream(v)).Equal(
+		assert(testRuntime.parseResponseStream(v)).Equals(
 			RTValue{err: base.ErrStream},
 		)
 	})
@@ -443,7 +443,7 @@ func TestRuntime_parseResponseStream(t *testing.T) {
 		v.SetKind(StreamKindRPCResponseError)
 		v.WriteUint64(1 << 32)
 		v.WriteString(base.ErrStream.GetMessage())
-		assert(testRuntime.parseResponseStream(v)).Equal(
+		assert(testRuntime.parseResponseStream(v)).Equals(
 			RTValue{err: base.ErrStream},
 		)
 	})
@@ -454,7 +454,7 @@ func TestRuntime_parseResponseStream(t *testing.T) {
 		v := NewStream()
 		v.SetKind(StreamKindRPCResponseError)
 		v.WriteUint64(0)
-		assert(testRuntime.parseResponseStream(v)).Equal(
+		assert(testRuntime.parseResponseStream(v)).Equals(
 			RTValue{err: base.ErrStream},
 		)
 	})
@@ -465,7 +465,7 @@ func TestRuntime_parseResponseStream(t *testing.T) {
 		v := NewStream()
 		v.SetKind(StreamKindRPCResponseOK)
 		v.WriteBool(true)
-		assert(testRuntime.parseResponseStream(v).ToBool()).Equal(true, nil)
+		assert(testRuntime.parseResponseStream(v).ToBool()).Equals(true, nil)
 	})
 
 	t.Run("error message Read error", func(t *testing.T) {
@@ -475,7 +475,7 @@ func TestRuntime_parseResponseStream(t *testing.T) {
 		v.SetKind(StreamKindRPCResponseError)
 		v.WriteUint64(uint64(base.ErrorTypeSecurity))
 		v.WriteBool(true)
-		assert(testRuntime.parseResponseStream(v)).Equal(
+		assert(testRuntime.parseResponseStream(v)).Equals(
 			RTValue{err: base.ErrStream},
 		)
 	})
@@ -488,7 +488,7 @@ func TestRuntime_parseResponseStream(t *testing.T) {
 		v.WriteUint64(uint64(base.ErrStream.GetCode()))
 		v.WriteString(base.ErrStream.GetMessage())
 		v.WriteBool(true)
-		assert(testRuntime.parseResponseStream(v)).Equal(
+		assert(testRuntime.parseResponseStream(v)).Equals(
 			RTValue{err: base.ErrStream},
 		)
 	})
@@ -500,7 +500,7 @@ func TestRuntime_parseResponseStream(t *testing.T) {
 		v.SetKind(StreamKindRPCResponseError)
 		v.WriteUint64(uint64(base.ErrStream.GetCode()))
 		v.WriteString(base.ErrStream.GetMessage())
-		assert(testRuntime.parseResponseStream(v)).Equal(
+		assert(testRuntime.parseResponseStream(v)).Equals(
 			RTValue{err: base.ErrStream},
 		)
 	})
@@ -512,7 +512,7 @@ func TestRuntime_parseResponseStream(t *testing.T) {
 		v.SetKind(StreamKindSystemErrorReport)
 		v.WriteUint64(uint64(base.ErrStream.GetCode()))
 		v.WriteString(base.ErrStream.GetMessage())
-		assert(testRuntime.parseResponseStream(v)).Equal(
+		assert(testRuntime.parseResponseStream(v)).Equals(
 			RTValue{err: base.ErrStream},
 		)
 	})
@@ -524,7 +524,7 @@ func TestRuntime_parseResponseStream(t *testing.T) {
 		v.SetKind(StreamKindConnectResponse)
 		v.WriteUint64(uint64(base.ErrStream.GetCode()))
 		v.WriteString(base.ErrStream.GetMessage())
-		assert(testRuntime.parseResponseStream(v)).Equal(
+		assert(testRuntime.parseResponseStream(v)).Equals(
 			RTValue{err: base.ErrStream},
 		)
 	})

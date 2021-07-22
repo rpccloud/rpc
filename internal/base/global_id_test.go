@@ -18,7 +18,7 @@ func TestNewGlobalID(t *testing.T) {
 			fnNetListen = originFN
 		}()
 
-		assert(NewGlobalID()).Equal(nil)
+		assert(NewGlobalID()).Equals(nil)
 	})
 
 	t.Run("net.Interfaces error", func(t *testing.T) {
@@ -30,7 +30,7 @@ func TestNewGlobalID(t *testing.T) {
 		defer func() {
 			fnNetInterfaces = originFN
 		}()
-		assert(NewGlobalID()).Equal(nil)
+		assert(NewGlobalID()).Equals(nil)
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -43,13 +43,13 @@ func TestGlobalID_GetID(t *testing.T) {
 	t.Run("port error", func(t *testing.T) {
 		assert := NewAssert(t)
 		v := &GlobalID{port: 0, mac: []byte{3, 4, 5, 6, 7, 8}}
-		assert(v.GetID()).Equal(uint64(0))
+		assert(v.GetID()).Equals(uint64(0))
 	})
 
 	t.Run("mac error", func(t *testing.T) {
 		assert := NewAssert(t)
 		v := &GlobalID{port: 513, mac: []byte{3, 4, 5, 6, 7}}
-		assert(v.GetID()).Equal(uint64(0))
+		assert(v.GetID()).Equals(uint64(0))
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -57,7 +57,7 @@ func TestGlobalID_GetID(t *testing.T) {
 		v := &GlobalID{port: 513, mac: []byte{3, 4, 5, 6, 7, 8}}
 		buffer := make([]byte, 8)
 		binary.LittleEndian.PutUint64(buffer, v.GetID())
-		assert(buffer).Equal([]byte{1, 2, 3, 4, 5, 6, 7, 8})
+		assert(buffer).Equals([]byte{1, 2, 3, 4, 5, 6, 7, 8})
 	})
 }
 
@@ -67,7 +67,7 @@ func TestGlobalID_Close(t *testing.T) {
 		v := &GlobalID{port: 0, mac: []byte{3, 4, 5, 6, 7, 8}}
 		v.Close()
 		assert(v.listener).IsNil()
-		assert(v.port).Equal(uint16(0))
+		assert(v.port).Equals(uint16(0))
 		assert(v.mac).IsNil()
 	})
 
@@ -76,7 +76,7 @@ func TestGlobalID_Close(t *testing.T) {
 		v := NewGlobalID()
 		v.Close()
 		assert(v.listener).IsNil()
-		assert(v.port).Equal(uint16(0))
+		assert(v.port).Equals(uint16(0))
 		assert(v.mac).IsNil()
 	})
 }

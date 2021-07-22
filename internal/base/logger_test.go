@@ -39,12 +39,12 @@ func TestNewLogger(t *testing.T) {
 		assert := NewAssert(t)
 		v, e := NewLogger(false, "/")
 		assert(v.file).IsNil()
-		assert(e.GetCode()).Equal(ErrLogOpenFile.GetCode())
+		assert(e.GetCode()).Equals(ErrLogOpenFile.GetCode())
 	})
 
 	t.Run("file is empty", func(t *testing.T) {
 		assert := NewAssert(t)
-		assert(NewLogger(false, "")).Equal(&Logger{
+		assert(NewLogger(false, "")).Equals(&Logger{
 			isLogToScreen: false,
 			file:          nil,
 		}, nil)
@@ -73,7 +73,7 @@ func TestLogger_Log(t *testing.T) {
 
 		assert(captureStdout(func() {
 			v.Log("hello")
-		})).Equal("hello")
+		})).Equals("hello")
 
 		v.Close()
 	})
@@ -84,9 +84,9 @@ func TestLogger_Log(t *testing.T) {
 
 		assert(captureStdout(func() {
 			v.Log("hello")
-		})).Equal("")
+		})).Equals("")
 
-		assert(getFileContent("test.log")).Equal("hello")
+		assert(getFileContent("test.log")).Equals("hello")
 
 		v.Close()
 		_ = os.Remove("test.log")
@@ -113,7 +113,7 @@ func TestLogger_Close(t *testing.T) {
 
 		v, _ := NewLogger(true, "test.log")
 		v.file.Close()
-		assert(v.Close().GetCode()).Equal(ErrLogCloseFile.GetCode())
+		assert(v.Close().GetCode()).Equals(ErrLogCloseFile.GetCode())
 		_ = os.Remove("test.log")
 	})
 }

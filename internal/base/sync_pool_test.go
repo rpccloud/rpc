@@ -15,7 +15,7 @@ func TestSyncPoolDebug_Put(t *testing.T) {
 		}
 		assert(RunWithCatchPanic(func() {
 			v1.Put(nil)
-		})).Equal("value is nil")
+		})).Equals("value is nil")
 	})
 
 	t.Run("put unmanaged value", func(t *testing.T) {
@@ -29,7 +29,7 @@ func TestSyncPoolDebug_Put(t *testing.T) {
 		assert(RunWithCatchPanic(func() {
 			ret := make([]byte, 512)
 			v1.Put(&ret)
-		})).Equal("check failed")
+		})).Equals("check failed")
 	})
 
 	t.Run("put managed value", func(t *testing.T) {
@@ -59,9 +59,9 @@ func TestSyncPoolDebug_Get(t *testing.T) {
 				}
 				v1.Get()
 				v1.Get()
-			})).Equal("check failed")
+			})).Equals("check failed")
 		})
-		assert(outString).Equal(
+		assert(outString).Equals(
 			"Warn: SyncPool is in debug mode, which may slow down the program",
 		)
 	})
@@ -80,7 +80,7 @@ func TestSyncPoolDebug_Get(t *testing.T) {
 			assert(v1.Get()).IsNotNil()
 		})
 
-		assert(outString).Equal(
+		assert(outString).Equals(
 			"Warn: SyncPool is in debug mode, which may slow down the program",
 		)
 	})

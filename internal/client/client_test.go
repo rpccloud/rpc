@@ -143,10 +143,10 @@ func TestSubscription_Close(t *testing.T) {
 		client.subscriptionMap["#.test%Message"] = []*Subscription{sub}
 
 		sub.Close()
-		assert(sub.id).Equal(int64(0))
-		assert(sub.client).Equal(nil)
-		assert(sub.onMessage).Equal(nil)
-		assert(client.subscriptionMap).Equal(map[string][]*Subscription{})
+		assert(sub.id).Equals(int64(0))
+		assert(sub.client).Equals(nil)
+		assert(sub.onMessage).Equals(nil)
+		assert(client.subscriptionMap).Equals(map[string][]*Subscription{})
 	})
 }
 
@@ -158,10 +158,10 @@ func TestSendItem_NewSendItem(t *testing.T) {
 		assert(base.TimeNow().UnixNano()-v.startTimeNS < int64(time.Second)).
 			IsTrue()
 		assert(base.TimeNow().UnixNano()-v.startTimeNS >= 0).IsTrue()
-		assert(v.sendTimeNS).Equal(int64(0))
-		assert(v.timeoutNS).Equal(int64(5432))
-		assert(len(v.returnCH)).Equal(0)
-		assert(cap(v.returnCH)).Equal(1)
+		assert(v.sendTimeNS).Equals(int64(0))
+		assert(v.timeoutNS).Equals(int64(5432))
+		assert(len(v.returnCH)).Equals(0)
+		assert(cap(v.returnCH)).Equals(1)
 		assert(v.sendStream).IsNotNil()
 		assert(v.next).IsNil()
 	})
@@ -172,7 +172,7 @@ func TestSendItem_Back(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewSendItem(0)
 		assert(v.Back(nil)).IsFalse()
-		assert(len(v.returnCH)).Equal(0)
+		assert(len(v.returnCH)).Equals(0)
 	})
 
 	t.Run("item is not running", func(t *testing.T) {
@@ -180,7 +180,7 @@ func TestSendItem_Back(t *testing.T) {
 		v := NewSendItem(0)
 		v.isRunning = false
 		assert(v.Back(rpc.NewStream())).IsFalse()
-		assert(len(v.returnCH)).Equal(0)
+		assert(len(v.returnCH)).Equals(0)
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -188,8 +188,8 @@ func TestSendItem_Back(t *testing.T) {
 		v := NewSendItem(0)
 		stream := rpc.NewStream()
 		assert(v.Back(stream)).IsTrue()
-		assert(len(v.returnCH)).Equal(1)
-		assert(<-v.returnCH).Equal(stream)
+		assert(len(v.returnCH)).Equals(1)
+		assert(<-v.returnCH).Equals(stream)
 	})
 }
 
@@ -201,13 +201,13 @@ func TestSendItem_CheckTime(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 		assert(v.CheckTime(base.TimeNow().UnixNano())).IsTrue()
 		assert(v.isRunning).IsFalse()
-		assert(len(v.returnCH)).Equal(1)
+		assert(len(v.returnCH)).Equals(1)
 		stream := <-v.returnCH
-		assert(stream.GetCallbackID()).Equal(uint64(15))
+		assert(stream.GetCallbackID()).Equals(uint64(15))
 		assert(stream.ReadUint64()).
-			Equal(uint64(base.ErrClientTimeout.GetCode()), nil)
+			Equals(uint64(base.ErrClientTimeout.GetCode()), nil)
 		assert(stream.ReadString()).
-			Equal(base.ErrClientTimeout.GetMessage(), nil)
+			Equals(base.ErrClientTimeout.GetMessage(), nil)
 		assert(stream.IsReadFinish()).IsTrue()
 	})
 
@@ -218,7 +218,7 @@ func TestSendItem_CheckTime(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 		assert(v.CheckTime(base.TimeNow().UnixNano())).IsFalse()
 		assert(v.isRunning).IsTrue()
-		assert(len(v.returnCH)).Equal(0)
+		assert(len(v.returnCH)).Equals(0)
 	})
 
 	t.Run("it is not running", func(t *testing.T) {
@@ -229,7 +229,7 @@ func TestSendItem_CheckTime(t *testing.T) {
 		v.isRunning = false
 		assert(v.CheckTime(base.TimeNow().UnixNano())).IsFalse()
 		assert(v.isRunning).IsFalse()
-		assert(len(v.returnCH)).Equal(0)
+		assert(len(v.returnCH)).Equals(0)
 	})
 }
 
@@ -242,7 +242,7 @@ func TestSendItem_Release(t *testing.T) {
 		}
 
 		v.Release()
-		assert(v.sendStream.GetWritePos()).Equal(rpc.StreamHeadSize)
+		assert(v.sendStream.GetWritePos()).Equals(rpc.StreamHeadSize)
 	})
 
 	t.Run("test put back", func(t *testing.T) {
@@ -269,9 +269,9 @@ func TestChannel_Use(t *testing.T) {
 		v := &Channel{sequence: 642}
 		item := NewSendItem(0)
 		assert(v.Use(item, 32)).IsTrue()
-		assert(v.sequence).Equal(uint64(674))
-		assert(v.item).Equal(item)
-		assert(item.sendStream.GetCallbackID()).Equal(uint64(674))
+		assert(v.sequence).Equals(uint64(674))
+		assert(v.item).Equals(item)
+		assert(item.sendStream.GetCallbackID()).Equals(uint64(674))
 		nowNS := base.TimeNow().UnixNano()
 		assert(nowNS-v.item.sendTimeNS < int64(time.Second)).IsTrue()
 		assert(nowNS-v.item.sendTimeNS > -int64(time.Second)).IsTrue()
@@ -290,11 +290,11 @@ func TestChannel_Free(t *testing.T) {
 		item := NewSendItem(0)
 		v := &Channel{sequence: 642, item: item}
 		stream := rpc.NewStream()
-		assert(len(item.returnCH)).Equal(0)
+		assert(len(item.returnCH)).Equals(0)
 		assert(v.Free(stream)).IsTrue()
 		assert(v.item).IsNil()
-		assert(len(item.returnCH)).Equal(1)
-		assert(<-item.returnCH).Equal(stream)
+		assert(len(item.returnCH)).Equals(1)
+		assert(<-item.returnCH).Equals(stream)
 	})
 }
 
@@ -317,10 +317,10 @@ func TestChannel_CheckTime(t *testing.T) {
 		v := &Channel{sequence: 642, item: item}
 
 		time.Sleep(10 * time.Millisecond)
-		assert(len(item.returnCH)).Equal(0)
+		assert(len(item.returnCH)).Equals(0)
 		assert(v.CheckTime(base.TimeNow().UnixNano())).IsTrue()
 		assert(v.item).IsNil()
-		assert(len(item.returnCH)).Equal(1)
+		assert(len(item.returnCH)).Equals(1)
 	})
 }
 
@@ -353,7 +353,7 @@ func TestNewClient(t *testing.T) {
 			}
 		}
 
-		assert(v.config).Equal(&Config{
+		assert(v.config).Equals(&Config{
 			numOfChannels:    32,
 			transLimit:       4 * 1024 * 1024,
 			heartbeat:        4 * time.Second,
@@ -363,30 +363,30 @@ func TestNewClient(t *testing.T) {
 		testAdapter := (*TestAdapter)(unsafe.Pointer(v.adapter))
 		assert(testAdapter.isDebug).IsFalse()
 		assert(testAdapter.isClient).IsTrue()
-		assert(testAdapter.network).Equal("ws")
-		assert(testAdapter.addr).Equal("127.0.0.1:8765")
-		assert(testAdapter.tlsConfig).Equal(nil)
-		assert(testAdapter.rBufSize).Equal(1024)
-		assert(testAdapter.wBufSize).Equal(2048)
-		assert(testAdapter.receiver).Equal(v)
+		assert(testAdapter.network).Equals("ws")
+		assert(testAdapter.addr).Equals("127.0.0.1:8765")
+		assert(testAdapter.tlsConfig).Equals(nil)
+		assert(testAdapter.rBufSize).Equals(1024)
+		assert(testAdapter.wBufSize).Equals(2048)
+		assert(testAdapter.receiver).Equals(v)
 		assert(testAdapter.service).IsNotNil()
 		adapterOrcManager := (*TestORCManager)(
 			unsafe.Pointer(testAdapter.orcManager),
 		)
 		// orcStatusReady | orcLockBit = 1 | 1 << 2 = 5
 		assert(atomic.LoadUint64(&adapterOrcManager.sequence) % 8).
-			Equal(uint64(5))
-		assert(adapterOrcManager.isWaitChange).Equal(false)
+			Equals(uint64(5))
+		assert(adapterOrcManager.isWaitChange).Equals(false)
 		assert(&adapterOrcManager.mu).IsNotNil()
 		assert(&adapterOrcManager.cond).IsNotNil()
 		assert(v.preSendHead).IsNil()
 		assert(v.preSendTail).IsNil()
-		assert(len(v.channels)).Equal(32)
+		assert(len(v.channels)).Equals(32)
 		assert(v.lastPingTimeNS > 0).IsTrue()
 		// orcStatusReady | orcLockBit = 1 | 1 << 2 = 5
 		assert(atomic.LoadUint64(
 			&(*TestORCManager)(unsafe.Pointer(v.orcManager)).sequence,
-		) % 8).Equal(uint64(5))
+		) % 8).Equals(uint64(5))
 
 		// check tryLoop
 		_, err := v.Send(
@@ -394,7 +394,7 @@ func TestNewClient(t *testing.T) {
 			"#.user:Sleep",
 			int64(2*time.Second),
 		)
-		assert(err).Equal(base.ErrClientTimeout)
+		assert(err).Equals(base.ErrClientTimeout)
 		v.Close()
 	})
 }
@@ -405,7 +405,7 @@ func TestClient_tryToSendPing(t *testing.T) {
 		v := &Client{}
 
 		v.tryToSendPing(1)
-		assert(v.lastPingTimeNS).Equal(int64(0))
+		assert(v.lastPingTimeNS).Equals(int64(0))
 	})
 
 	t.Run("do not need to ping", func(t *testing.T) {
@@ -421,7 +421,7 @@ func TestClient_tryToSendPing(t *testing.T) {
 		v.conn = streamConn
 
 		v.tryToSendPing(base.TimeNow().UnixNano())
-		assert(len(netConn.writeCH)).Equal(0)
+		assert(len(netConn.writeCH)).Equals(0)
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -440,7 +440,7 @@ func TestClient_tryToSendPing(t *testing.T) {
 
 		stream := rpc.NewStream()
 		stream.PutBytesTo(<-netConn.writeCH, 0)
-		assert(stream.GetKind()).Equal(uint8(rpc.StreamKindPing))
+		assert(stream.GetKind()).Equals(uint8(rpc.StreamKindPing))
 		assert(stream.IsReadFinish()).IsTrue()
 		assert(stream.CheckStream()).IsTrue()
 	})
@@ -501,11 +501,11 @@ func TestClient_tryToTimeout(t *testing.T) {
 		v.channels[0].Use(item, 1)
 
 		v.tryToTimeout(item.sendTimeNS + int64(4*time.Millisecond))
-		assert(v.channels[0].sequence).Equal(uint64(1))
+		assert(v.channels[0].sequence).Equals(uint64(1))
 		assert(v.channels[0].item).IsNotNil()
 
 		v.tryToTimeout(item.sendTimeNS + int64(10*time.Millisecond))
-		assert(v.channels[0].sequence).Equal(uint64(1))
+		assert(v.channels[0].sequence).Equals(uint64(1))
 		assert(v.channels[0].item).IsNil()
 	})
 
@@ -654,7 +654,7 @@ func TestClient_Subscribe(t *testing.T) {
 		sub3 := v.Subscribe("#.test", "Message02", func(value rpc.Any) {})
 
 		assert(sub1, sub2, sub3).IsNotNil()
-		assert(v.subscriptionMap).Equal(map[string][]*Subscription{
+		assert(v.subscriptionMap).Equals(map[string][]*Subscription{
 			"#.test%Message01": {sub1, sub2},
 			"#.test%Message02": {sub3},
 		})
@@ -676,8 +676,8 @@ func TestClient_Subscribe(t *testing.T) {
 			waitCH <- value
 		})
 		assert(rpcClient.Send(5*time.Second, "#.user:PostMessage", 2345)).
-			Equal(nil, nil)
-		assert(<-waitCH).Equal(rpc.Array{true, int64(2345)})
+			Equals(nil, nil)
+		assert(<-waitCH).Equals(rpc.Array{true, int64(2345)})
 	})
 }
 
@@ -692,21 +692,21 @@ func TestClient_unsubscribe(t *testing.T) {
 	sub2 := v.Subscribe("#.test", "Message01", func(value rpc.Any) {})
 	sub3 := v.Subscribe("#.test", "Message02", func(value rpc.Any) {})
 
-	assert(v.subscriptionMap).Equal(map[string][]*Subscription{
+	assert(v.subscriptionMap).Equals(map[string][]*Subscription{
 		"#.test%Message01": {sub1, sub2},
 		"#.test%Message02": {sub3},
 	})
 	v.unsubscribe(sub1.id)
-	assert(v.subscriptionMap).Equal(map[string][]*Subscription{
+	assert(v.subscriptionMap).Equals(map[string][]*Subscription{
 		"#.test%Message01": {sub2},
 		"#.test%Message02": {sub3},
 	})
 	v.unsubscribe(sub2.id)
-	assert(v.subscriptionMap).Equal(map[string][]*Subscription{
+	assert(v.subscriptionMap).Equals(map[string][]*Subscription{
 		"#.test%Message02": {sub3},
 	})
 	v.unsubscribe(sub3.id)
-	assert(v.subscriptionMap).Equal(map[string][]*Subscription{})
+	assert(v.subscriptionMap).Equals(map[string][]*Subscription{})
 }
 
 func TestClient_Send(t *testing.T) {
@@ -717,7 +717,7 @@ func TestClient_Send(t *testing.T) {
 		}
 
 		assert(v.Send(time.Second, "#.user:SayHello", make(chan bool))).
-			Equal(nil, base.ErrUnsupportedValue.AddDebug(
+			Equals(nil, base.ErrUnsupportedValue.AddDebug(
 				"value type(chan bool) is not supported",
 			))
 	})
@@ -745,7 +745,7 @@ func TestClient_Send(t *testing.T) {
 		}
 
 		for i := 0; i < 300; i++ {
-			assert(<-waitCH...).Equal("hello kitty", nil)
+			assert(<-waitCH...).Equals("hello kitty", nil)
 		}
 	})
 }
@@ -777,8 +777,8 @@ func TestClient_OnConnOpen(t *testing.T) {
 		stream := rpc.NewStream()
 		stream.PutBytesTo(<-netConn.writeCH, 0)
 		assert(stream.GetKind()).
-			Equal(uint8(rpc.StreamKindConnectRequest))
-		assert(stream.ReadString()).Equal("123456", nil)
+			Equals(uint8(rpc.StreamKindConnectRequest))
+		assert(stream.ReadString()).Equals("123456", nil)
 	})
 }
 
@@ -810,7 +810,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.SetCallbackID(12)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("conn == nil, kind != StreamKindConnectResponse", func(t *testing.T) {
@@ -819,7 +819,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.SetCallbackID(0)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("conn == nil, read sessionString error", func(t *testing.T) {
@@ -829,7 +829,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.SetKind(rpc.StreamKindConnectResponse)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("conn == nil, read numOfChannels error", func(t *testing.T) {
@@ -840,7 +840,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteString("12-87654321876543218765432187654321")
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("conn == nil, numOfChannels config error", func(t *testing.T) {
@@ -852,7 +852,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteInt64(0)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrClientConfig)
+		assert(<-errCH).Equals(base.ErrClientConfig)
 	})
 
 	t.Run("conn == nil, read transLimit error", func(t *testing.T) {
@@ -864,7 +864,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteInt64(32)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("conn == nil, transLimit config error", func(t *testing.T) {
@@ -877,7 +877,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteInt64(0)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrClientConfig)
+		assert(<-errCH).Equals(base.ErrClientConfig)
 	})
 
 	t.Run("conn == nil, read heartbeat error", func(t *testing.T) {
@@ -890,7 +890,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteInt64(4 * 1024 * 1024)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("conn == nil, heartbeat config error", func(t *testing.T) {
@@ -904,7 +904,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteInt64(0)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrClientConfig)
+		assert(<-errCH).Equals(base.ErrClientConfig)
 	})
 
 	t.Run("conn == nil, read heartbeatTimeout error", func(t *testing.T) {
@@ -918,7 +918,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteInt64(int64(time.Second))
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("conn == nil, heartbeatTimeout config error", func(t *testing.T) {
@@ -933,7 +933,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteInt64(0)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrClientConfig)
+		assert(<-errCH).Equals(base.ErrClientConfig)
 	})
 
 	t.Run("conn == nil, stream is not finish", func(t *testing.T) {
@@ -949,7 +949,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteBool(false)
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("conn == nil, sessionString != p.sessionString", func(t *testing.T) {
@@ -964,15 +964,15 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		stream.WriteInt64(int64(2 * time.Second / time.Millisecond))
 		v, streamConn, _, errCH := fnTestClient()
 		v.OnConnReadStream(streamConn, stream)
-		assert(len(errCH)).Equal(0)
-		assert(v.sessionString).Equal("12-87654321876543218765432187654321")
+		assert(len(errCH)).Equals(0)
+		assert(v.sessionString).Equals("12-87654321876543218765432187654321")
 
-		assert(v.config.numOfChannels).Equal(32)
-		assert(v.config.transLimit).Equal(4 * 1024 * 1024)
-		assert(v.config.heartbeat).Equal(1 * time.Second)
-		assert(v.config.heartbeatTimeout).Equal(2 * time.Second)
+		assert(v.config.numOfChannels).Equals(32)
+		assert(v.config.transLimit).Equals(4 * 1024 * 1024)
+		assert(v.config.heartbeat).Equals(1 * time.Second)
+		assert(v.config.heartbeatTimeout).Equals(2 * time.Second)
 		for i := 0; i < 32; i++ {
-			assert(v.channels[i].sequence).Equal(uint64(i))
+			assert(v.channels[i].sequence).Equals(uint64(i))
 			assert(v.channels[i].item).IsNil()
 		}
 		assert(v.lastPingTimeNS > 0).IsTrue()
@@ -997,7 +997,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 
 		v.sessionString = "12-87654321876543218765432187654321"
 		v.OnConnReadStream(streamConn, stream)
-		assert(len(netConn.writeCH)).Equal(32)
+		assert(len(netConn.writeCH)).Equals(32)
 		assert(v.lastPingTimeNS > 0).IsTrue()
 	})
 
@@ -1009,7 +1009,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		v, streamConn, _, errCH := fnTestClient()
 		v.conn = streamConn
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("p.conn != nil, StreamKindPong ok", func(t *testing.T) {
@@ -1019,7 +1019,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		v, streamConn, _, errCH := fnTestClient()
 		v.conn = streamConn
 		v.OnConnReadStream(streamConn, stream)
-		assert(len(errCH)).Equal(0)
+		assert(len(errCH)).Equals(0)
 	})
 
 	t.Run("p.conn != nil, StreamKindRPCResponseOK ok", func(t *testing.T) {
@@ -1089,7 +1089,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		v, streamConn, _, errCH := fnTestClient()
 		v.conn = streamConn
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("StreamKindRPCBoardCast Read path error", func(t *testing.T) {
@@ -1099,7 +1099,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		v, streamConn, _, errCH := fnTestClient()
 		v.conn = streamConn
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("StreamKindRPCBoardCast Read value error", func(t *testing.T) {
@@ -1110,7 +1110,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		v, streamConn, _, errCH := fnTestClient()
 		v.conn = streamConn
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("StreamKindRPCBoardCast Read is not finish", func(t *testing.T) {
@@ -1123,7 +1123,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 		v, streamConn, _, errCH := fnTestClient()
 		v.conn = streamConn
 		v.OnConnReadStream(streamConn, stream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 	})
 
 	t.Run("StreamKindRPCBoardCast ok", func(t *testing.T) {
@@ -1139,7 +1139,7 @@ func TestClient_OnConnReadStream(t *testing.T) {
 			ret = value
 		})
 		v.OnConnReadStream(streamConn, stream)
-		assert(ret).Equal("Hello")
+		assert(ret).Equals("Hello")
 	})
 }
 
@@ -1156,7 +1156,7 @@ func TestClient_OnConnError(t *testing.T) {
 		syncConn.SetNext(streamConn)
 		v.conn = streamConn
 		v.OnConnError(streamConn, base.ErrStream)
-		assert(<-errCH).Equal(base.ErrStream)
+		assert(<-errCH).Equals(base.ErrStream)
 		assert(netConn.isRunning).IsFalse()
 	})
 }

@@ -63,7 +63,7 @@ func TestPublishPanic(t *testing.T) {
 		})
 		defer v1.Close()
 		PublishPanic(err)
-		assert(<-retCH).Equal(err)
+		assert(<-retCH).Equals(err)
 	})
 
 	t.Run("test", func(t *testing.T) {
@@ -82,7 +82,7 @@ func TestPublishPanic(t *testing.T) {
 		})
 		defer v1.Close()
 		PublishPanic(err)
-		assert(<-retCH).Equal(err)
+		assert(<-retCH).Equals(err)
 	})
 }
 
@@ -91,7 +91,7 @@ func TestRunWithCatchPanic(t *testing.T) {
 		assert := NewAssert(t)
 		assert(RunWithCatchPanic(func() {
 			panic("error")
-		})).Equal("error")
+		})).Equals("error")
 	})
 
 	t.Run("func without panic", func(t *testing.T) {
@@ -115,7 +115,7 @@ func TestRunWithSubscribePanic(t *testing.T) {
 
 		assert(RunWithSubscribePanic(func() {
 			PublishPanic(err)
-		})).Equal(err)
+		})).Equals(err)
 	})
 
 	t.Run("func without PublishPanic", func(t *testing.T) {

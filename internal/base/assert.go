@@ -34,8 +34,8 @@ func (p *Assert) Fail(reason string) {
 	p.fail(reason)
 }
 
-// Equal ...
-func (p *Assert) Equal(args ...interface{}) {
+// Equals ...
+func (p *Assert) Equals(args ...interface{}) {
 	if len(p.args) < 1 {
 		p.fail("arguments is empty")
 	} else if len(p.args) != len(args) {

@@ -43,7 +43,7 @@ func TestAllCPUTimes(t *testing.T) {
 func TestGetCPUPercent(t *testing.T) {
 	t.Run("interval <= 0", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(getCPUPercent(0)).Equal(float64(1), false)
+		assert(getCPUPercent(0)).Equals(float64(1), false)
 	})
 
 	t.Run("ok", func(t *testing.T) {
@@ -58,25 +58,25 @@ func TestCalculateCPUPercent(t *testing.T) {
 	t.Run("t1 == nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(calculateCPUPercent(nil, &cpuTimesStat{})).
-			Equal(float64(1), false)
+			Equals(float64(1), false)
 	})
 
 	t.Run("t2 == nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(calculateCPUPercent(&cpuTimesStat{}, nil)).
-			Equal(float64(1), false)
+			Equals(float64(1), false)
 	})
 
 	t.Run("t2Busy < t1Busy", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(calculateCPUPercent(&cpuTimesStat{User: 1}, &cpuTimesStat{})).
-			Equal(float64(1), false)
+			Equals(float64(1), false)
 	})
 
 	t.Run("t2All <= t1All", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(calculateCPUPercent(&cpuTimesStat{Idle: 1}, &cpuTimesStat{})).
-			Equal(float64(1), true)
+			Equals(float64(1), true)
 	})
 
 	t.Run("ok", func(t *testing.T) {
@@ -84,7 +84,7 @@ func TestCalculateCPUPercent(t *testing.T) {
 		assert(calculateCPUPercent(
 			&cpuTimesStat{},
 			&cpuTimesStat{User: 1, Idle: 1},
-		)).Equal(0.5, true)
+		)).Equals(0.5, true)
 	})
 }
 

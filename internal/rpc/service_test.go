@@ -11,7 +11,7 @@ func TestNewServiceMeta(t *testing.T) {
 		assert := base.NewAssert(t)
 		service := NewService()
 		assert(NewServiceMeta("test", service, "debug", nil)).
-			Equal(&ServiceMeta{
+			Equals(&ServiceMeta{
 				name:     "test",
 				service:  service,
 				fileLine: "debug",
@@ -24,8 +24,8 @@ func TestNewService(t *testing.T) {
 		assert := base.NewAssert(t)
 		service := NewService()
 		assert(service).IsNotNil()
-		assert(len(service.children)).Equal(0)
-		assert(len(service.actions)).Equal(0)
+		assert(len(service.children)).Equals(0)
+		assert(len(service.actions)).Equals(0)
 	})
 }
 
@@ -36,11 +36,11 @@ func TestService_AddChildService(t *testing.T) {
 		service, fileLine := NewService().
 			AddChildService("ch", child, nil), base.GetFileLine(0)
 		assert(service).IsNotNil()
-		assert(len(service.children)).Equal(1)
-		assert(len(service.actions)).Equal(0)
-		assert(service.children[0].name).Equal("ch")
-		assert(service.children[0].service).Equal(child)
-		assert(service.children[0].fileLine).Equal(fileLine)
+		assert(len(service.children)).Equals(1)
+		assert(len(service.actions)).Equals(0)
+		assert(service.children[0].name).Equals("ch")
+		assert(service.children[0].service).Equals(child)
+		assert(service.children[0].fileLine).Equals(fileLine)
 	})
 }
 
@@ -50,10 +50,10 @@ func TestService_On(t *testing.T) {
 		getFL := base.GetFileLine
 		service, fileLine := NewService().On("sayHello", 2345), getFL(0)
 		assert(service).IsNotNil()
-		assert(len(service.children)).Equal(0)
-		assert(len(service.actions)).Equal(1)
-		assert(service.actions[0].name).Equal("sayHello")
-		assert(service.actions[0].handler).Equal(2345)
-		assert(service.actions[0].fileLine).Equal(fileLine)
+		assert(len(service.children)).Equals(0)
+		assert(len(service.actions)).Equals(1)
+		assert(service.actions[0].name).Equals("sayHello")
+		assert(service.actions[0].handler).Equals(2345)
+		assert(service.actions[0].fileLine).Equals(fileLine)
 	})
 }

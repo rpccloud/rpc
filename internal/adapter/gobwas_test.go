@@ -102,7 +102,7 @@ func TestSyncWSConn_Read(t *testing.T) {
 		clientConn, serverConn, server := getTestConnections()
 		_ = serverConn.Close()
 		buffer := make([]byte, 1024)
-		assert(clientConn.Read(buffer)).Equal(-1, io.EOF)
+		assert(clientConn.Read(buffer)).Equals(-1, io.EOF)
 		_ = server.Close()
 	})
 
@@ -124,7 +124,7 @@ func TestSyncWSConn_Read(t *testing.T) {
 				testSuite[1],
 				serverConn,
 				clientConn,
-			)).Equal(true)
+			)).Equals(true)
 			_ = server.Close()
 		}
 	})
@@ -137,12 +137,12 @@ func TestSyncWSConn_Write(t *testing.T) {
 		_ = clientConn.Close()
 		buffer := make([]byte, 1024)
 		n, e := clientConn.Write(buffer)
-		assert(n).Equal(-1)
+		assert(n).Equals(-1)
 		assert(e).IsNotNil()
 		assert(strings.HasSuffix(
 			e.Error(),
 			"use of closed network connection",
-		)).Equal(true)
+		)).Equals(true)
 		_ = server.Close()
 	})
 
@@ -164,7 +164,7 @@ func TestSyncWSConn_Write(t *testing.T) {
 				testSuite[1],
 				clientConn,
 				serverConn,
-			)).Equal(true)
+			)).Equals(true)
 			_ = server.Close()
 		}
 	})
@@ -186,10 +186,10 @@ func TestSyncWSConn_LocalAddr(t *testing.T) {
 	assert(strings.HasPrefix(
 		clientConn.LocalAddr().String(),
 		"127.0.0.1:",
-	)).Equal(true)
-	assert(serverConn.LocalAddr().String()).Equal("127.0.0.1:12345")
+	)).Equals(true)
+	assert(serverConn.LocalAddr().String()).Equals("127.0.0.1:12345")
 	assert(serverConn.RemoteAddr().String()).
-		Equal(clientConn.LocalAddr().String())
+		Equals(clientConn.LocalAddr().String())
 	_ = server.Close()
 }
 
@@ -197,14 +197,14 @@ func TestSyncWSConn_RemoteAddr(t *testing.T) {
 	assert := base.NewAssert(t)
 	clientConn, serverConn, server := getTestConnections()
 
-	assert(clientConn.RemoteAddr().String()).Equal("127.0.0.1:12345")
+	assert(clientConn.RemoteAddr().String()).Equals("127.0.0.1:12345")
 	assert(strings.HasPrefix(
 		serverConn.RemoteAddr().String(),
 		"127.0.0.1:",
-	)).Equal(true)
+	)).Equals(true)
 
 	assert(serverConn.RemoteAddr().String()).
-		Equal(clientConn.LocalAddr().String())
+		Equals(clientConn.LocalAddr().String())
 	_ = server.Close()
 }
 

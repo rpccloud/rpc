@@ -51,18 +51,18 @@ func TestRpcThreadFrame_Reset(t *testing.T) {
 		v.parentRTWritePos = 100
 		v.next = &rpcThreadFrame{}
 		v.Reset()
-		assert(v.stream).Equal(nil)
-		assert(v.actionNode).Equal(nil)
-		assert(v.from).Equal("")
-		assert(v.depth).Equal(uint16(13))
-		assert(v.cacheArrayItemsPos).Equal(uint32(0))
-		assert(v.cacheMapItemsPos).Equal(uint32(0))
-		assert(v.cacheArrayEntryPos).Equal(uint32(0))
-		assert(v.cacheMapEntryPos).Equal(uint32(0))
-		assert(v.retStatus).Equal(uint32(1))
-		assert(v.lockStatus).Equal(uint64(82737243243))
-		assert(v.parentRTWritePos).Equal(streamPosBody)
-		assert(v.next).Equal(nil)
+		assert(v.stream).Equals(nil)
+		assert(v.actionNode).Equals(nil)
+		assert(v.from).Equals("")
+		assert(v.depth).Equals(uint16(13))
+		assert(v.cacheArrayItemsPos).Equals(uint32(0))
+		assert(v.cacheMapItemsPos).Equals(uint32(0))
+		assert(v.cacheArrayEntryPos).Equals(uint32(0))
+		assert(v.cacheMapEntryPos).Equals(uint32(0))
+		assert(v.retStatus).Equals(uint32(1))
+		assert(v.lockStatus).Equals(uint64(82737243243))
+		assert(v.parentRTWritePos).Equals(streamPosBody)
+		assert(v.next).Equals(nil)
 		v.Release()
 	})
 }
@@ -73,7 +73,7 @@ func TestRpcThreadFrame_Release(t *testing.T) {
 		mp := map[string]bool{}
 		for i := 0; i < 1000; i++ {
 			v := newRPCThreadFrame()
-			assert(v.cacheArrayItemsPos).Equal(uint32(0))
+			assert(v.cacheArrayItemsPos).Equals(uint32(0))
 			v.cacheArrayItemsPos = 32
 			mp[fmt.Sprintf("%p", v)] = true
 			v.Release()
@@ -85,22 +85,22 @@ func TestRpcThreadFrame_Release(t *testing.T) {
 func TestRTArrayNewRTArray(t *testing.T) {
 	t.Run("thread is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(newRTArray(Runtime{}, 2)).Equal(RTArray{})
+		assert(newRTArray(Runtime{}, 2)).Equals(RTArray{})
 	})
 
 	t.Run("size is less than zero", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.Reset()
-		assert(newRTArray(testRuntime, -1)).Equal(RTArray{})
+		assert(newRTArray(testRuntime, -1)).Equals(RTArray{})
 	})
 
 	t.Run("size is zero", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.Reset()
 		v := newRTArray(testRuntime, 0)
-		assert(v.rt).Equal(testRuntime)
+		assert(v.rt).Equals(testRuntime)
 		assert(v.items != nil)
-		assert(len(*v.items), cap(*v.items)).Equal(0, 0)
+		assert(len(*v.items), cap(*v.items)).Equals(0, 0)
 	})
 
 	t.Run("test ok 1", func(t *testing.T) {
@@ -109,8 +109,8 @@ func TestRTArrayNewRTArray(t *testing.T) {
 		for i := 0; i < 100; i++ {
 			testRuntime.thread.Reset()
 			v := newRTArray(testRuntime, i)
-			assert(v.rt).Equal(testRuntime)
-			assert(len(*v.items), cap(*v.items)).Equal(0, i)
+			assert(v.rt).Equals(testRuntime)
+			assert(len(*v.items), cap(*v.items)).Equals(0, i)
 		}
 	})
 
@@ -120,8 +120,8 @@ func TestRTArrayNewRTArray(t *testing.T) {
 
 		for i := 0; i < 500; i++ {
 			v := newRTArray(testRuntime, 1)
-			assert(v.rt).Equal(testRuntime)
-			assert(len(*v.items), cap(*v.items)).Equal(0, 1)
+			assert(v.rt).Equals(testRuntime)
+			assert(len(*v.items), cap(*v.items)).Equals(0, 1)
 		}
 	})
 }
@@ -129,22 +129,22 @@ func TestRTArrayNewRTArray(t *testing.T) {
 func TestNewRTMap(t *testing.T) {
 	t.Run("thread is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(newRTMap(Runtime{}, 2)).Equal(RTMap{})
+		assert(newRTMap(Runtime{}, 2)).Equals(RTMap{})
 	})
 
 	t.Run("size is less than zero", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.Reset()
-		assert(newRTMap(testRuntime, -1)).Equal(RTMap{})
+		assert(newRTMap(testRuntime, -1)).Equals(RTMap{})
 	})
 
 	t.Run("size is zero", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		testRuntime.thread.Reset()
 		v := newRTMap(testRuntime, 0)
-		assert(v.rt).Equal(testRuntime)
+		assert(v.rt).Equals(testRuntime)
 		assert(v.items != nil)
-		assert(len(*v.items), cap(*v.items), *v.length).Equal(0, 0, uint32(0))
+		assert(len(*v.items), cap(*v.items), *v.length).Equals(0, 0, uint32(0))
 	})
 
 	t.Run("test ok 1", func(t *testing.T) {
@@ -153,9 +153,9 @@ func TestNewRTMap(t *testing.T) {
 		for i := 0; i < 100; i++ {
 			testRuntime.thread.Reset()
 			v := newRTMap(testRuntime, i)
-			assert(v.rt).Equal(testRuntime)
+			assert(v.rt).Equals(testRuntime)
 			assert(len(*v.items), cap(*v.items), *v.length).
-				Equal(0, i, uint32(0))
+				Equals(0, i, uint32(0))
 		}
 	})
 
@@ -165,8 +165,8 @@ func TestNewRTMap(t *testing.T) {
 
 		for i := 0; i < 500; i++ {
 			v := newRTMap(testRuntime, 1)
-			assert(v.rt).Equal(testRuntime)
-			assert(len(*v.items), cap(*v.items)).Equal(0, 1)
+			assert(v.rt).Equals(testRuntime)
+			assert(len(*v.items), cap(*v.items)).Equals(0, 1)
 		}
 	})
 }
@@ -190,18 +190,18 @@ func TestNewThread(t *testing.T) {
 			v := newThread(
 				testProcessor, 100*time.Millisecond, 2048, fnEvalFinish,
 			)
-			assert(v.processor).Equal(testProcessor)
+			assert(v.processor).Equals(testProcessor)
 			assert(v.inputCH).IsNotNil()
 			assert(v.closeCH).IsNotNil()
-			assert(v.closeTimeout).Equal(time.Second)
-			assert(v.top).Equal(&v.rootFrame)
-			assert(v.sequence > 0).Equal(true)
-			assert(v.sequence % 2).Equal(uint64(0))
+			assert(v.closeTimeout).Equals(time.Second)
+			assert(v.top).Equals(&v.rootFrame)
+			assert(v.sequence > 0).Equals(true)
+			assert(v.sequence % 2).Equals(uint64(0))
 			assert(v.rtStream).IsNotNil()
-			assert(len(v.cacheEntry)).Equal(8)
+			assert(len(v.cacheEntry)).Equals(8)
 			assert(len(v.cacheArrayItems), cap(v.cacheArrayItems)).
-				Equal(128, 128)
-			assert(len(v.cacheMapItems), cap(v.cacheMapItems)).Equal(32, 32)
+				Equals(128, 128)
+			assert(len(v.cacheMapItems), cap(v.cacheMapItems)).Equals(32, 32)
 			v.Close()
 			assert(v.closeCH).IsNil()
 		}
@@ -211,18 +211,18 @@ func TestNewThread(t *testing.T) {
 		assert := base.NewAssert(t)
 		for i := 0; i < 32; i++ {
 			v := newThread(testProcessor, 5*time.Second, 2048, fnEvalFinish)
-			assert(v.processor).Equal(testProcessor)
+			assert(v.processor).Equals(testProcessor)
 			assert(v.inputCH).IsNotNil()
 			assert(v.closeCH).IsNotNil()
-			assert(v.closeTimeout).Equal(5 * time.Second)
-			assert(v.top).Equal(&v.rootFrame)
-			assert(v.sequence > 0).Equal(true)
-			assert(v.sequence % 2).Equal(uint64(0))
+			assert(v.closeTimeout).Equals(5 * time.Second)
+			assert(v.top).Equals(&v.rootFrame)
+			assert(v.sequence > 0).Equals(true)
+			assert(v.sequence % 2).Equals(uint64(0))
 			assert(v.rtStream).IsNotNil()
-			assert(len(v.cacheEntry)).Equal(8)
+			assert(len(v.cacheEntry)).Equals(8)
 			assert(len(v.cacheArrayItems), cap(v.cacheArrayItems)).
-				Equal(128, 128)
-			assert(len(v.cacheMapItems), cap(v.cacheMapItems)).Equal(32, 32)
+				Equals(128, 128)
+			assert(len(v.cacheMapItems), cap(v.cacheMapItems)).Equals(32, 32)
 			v.Close()
 			assert(v.closeCH).IsNil()
 		}
@@ -245,12 +245,12 @@ func TestNewThread(t *testing.T) {
 			)
 			v.PutStream(NewStream())
 			assert(streamReceiver.WaitStream()).IsNotNil()
-			assert(<-chFinish).Equal(true)
-			assert(v.sequence > 0).Equal(true)
-			assert(v.sequence % 2).Equal(uint64(0))
-			assert(v.top).Equal(&v.rootFrame)
+			assert(<-chFinish).Equals(true)
+			assert(v.sequence > 0).Equals(true)
+			assert(v.sequence % 2).Equals(uint64(0))
+			assert(v.top).Equals(&v.rootFrame)
 			v.Close()
-			assert(v.top.stream).Equal(nil)
+			assert(v.top.stream).Equals(nil)
 		}
 	})
 }
@@ -312,7 +312,7 @@ func TestRpcThread_Close(t *testing.T) {
 				return rt.Reply(true)
 			},
 			true,
-		)).Equal(true, nil)
+		)).Equals(true, nil)
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -348,7 +348,7 @@ func TestRpcThread_lock(t *testing.T) {
 				}
 
 				return rt.Reply(rt.Call("#.test:Eval", v-1))
-			}, 3)).Equal("OK", nil)
+			}, 3)).Equals("OK", nil)
 	})
 
 	t.Run("lock failed", func(t *testing.T) {
@@ -360,7 +360,7 @@ func TestRpcThread_lock(t *testing.T) {
 				}
 				assert(rt.thread.lock(rt.id + 2)).IsNil()
 				return rt.Reply(rt.Call("#.test:Eval", v-1))
-			}, 10)).Equal("OK", nil)
+			}, 10)).Equals("OK", nil)
 	})
 
 	t.Run("lock ok", func(t *testing.T) {
@@ -373,7 +373,7 @@ func TestRpcThread_lock(t *testing.T) {
 				assert(rt.thread.lock(rt.id)).IsNotNil()
 				rt.thread.unlock(rt.id)
 				return rt.Reply(rt.Call("#.test:Eval", v-1))
-			}, 10)).Equal("OK", nil)
+			}, 10)).Equals("OK", nil)
 	})
 }
 
@@ -389,7 +389,7 @@ func TestRpcThread_unlock(t *testing.T) {
 				assert(rt.thread.unlock(rt.id + 2)).IsFalse()
 				rt.thread.unlock(rt.id)
 				return rt.Reply(rt.Call("#.test:Eval", v-1))
-			}, 10)).Equal("OK", nil)
+			}, 10)).Equals("OK", nil)
 	})
 
 	t.Run("unlock ok", func(t *testing.T) {
@@ -402,7 +402,7 @@ func TestRpcThread_unlock(t *testing.T) {
 				assert(rt.thread.lock(rt.id)).IsNotNil()
 				assert(rt.thread.unlock(rt.id)).IsTrue()
 				return rt.Reply(rt.Call("#.test:Eval", v-1))
-			}, 10)).Equal("OK", nil)
+			}, 10)).Equals("OK", nil)
 	})
 }
 
@@ -420,15 +420,15 @@ func TestRpcThread_pushFrame(t *testing.T) {
 				parentRTWritePos := rt.thread.rtStream.GetWritePos()
 				rt.thread.pushFrame()
 				newFrame := rt.thread.top
-				assert(newFrame.next).Equal(curFrame)
-				assert(newFrame.cacheArrayItemsPos).Equal(uint32(7))
-				assert(newFrame.cacheMapItemsPos).Equal(uint32(7))
-				assert(newFrame.cacheArrayEntryPos).Equal(uint32(1))
-				assert(newFrame.cacheMapEntryPos).Equal(uint32(1))
-				assert(newFrame.parentRTWritePos).Equal(parentRTWritePos)
+				assert(newFrame.next).Equals(curFrame)
+				assert(newFrame.cacheArrayItemsPos).Equals(uint32(7))
+				assert(newFrame.cacheMapItemsPos).Equals(uint32(7))
+				assert(newFrame.cacheArrayEntryPos).Equals(uint32(1))
+				assert(newFrame.cacheMapEntryPos).Equals(uint32(1))
+				assert(newFrame.parentRTWritePos).Equals(parentRTWritePos)
 				rt.thread.popFrame()
 				return rt.Reply("OK")
-			})).Equal("OK", nil)
+			})).Equals("OK", nil)
 	})
 }
 
@@ -453,19 +453,19 @@ func TestRpcThread_popFrame(t *testing.T) {
 				cacheMapEntryPos := curFrame.cacheMapEntryPos
 				parentRTWritePos := rt.thread.rtStream.GetWritePos()
 				ret := rt.Reply(rt.Call("#.test:Eval", v-1))
-				assert(rt.thread.top).Equal(curFrame)
+				assert(rt.thread.top).Equals(curFrame)
 				assert(rt.thread.top.cacheArrayItemsPos).
-					Equal(cacheArrayItemsPos)
+					Equals(cacheArrayItemsPos)
 				assert(rt.thread.top.cacheMapItemsPos).
-					Equal(cacheMapItemsPos)
+					Equals(cacheMapItemsPos)
 				assert(rt.thread.top.cacheArrayEntryPos).
-					Equal(cacheArrayEntryPos)
+					Equals(cacheArrayEntryPos)
 				assert(rt.thread.top.cacheMapEntryPos).
-					Equal(cacheMapEntryPos)
+					Equals(cacheMapEntryPos)
 				assert(rt.thread.rtStream.GetWritePos()).
-					Equal(parentRTWritePos + 1)
+					Equals(parentRTWritePos + 1)
 				return ret
-			}, 10)).Equal(true, nil)
+			}, 10)).Equals(true, nil)
 	})
 }
 
@@ -473,7 +473,7 @@ func TestRpcThread_GetActionNode(t *testing.T) {
 	t.Run("node is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := newThread(testProcessor, 3*time.Second, 2048, fnEvalFinish)
-		assert(v.GetActionNode()).Equal(nil)
+		assert(v.GetActionNode()).Equals(nil)
 		v.Close()
 	})
 
@@ -482,7 +482,7 @@ func TestRpcThread_GetActionNode(t *testing.T) {
 		assert(testReply(true, nil, nil, func(rt Runtime) Return {
 			assert(rt.thread.GetActionNode()).IsNotNil()
 			return rt.Reply(true)
-		})).Equal(true, nil)
+		})).Equals(true, nil)
 	})
 }
 
@@ -490,16 +490,16 @@ func TestRpcThread_GetExecActionNodePath(t *testing.T) {
 	t.Run("node is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := newThread(testProcessor, 3*time.Second, 2048, fnEvalFinish)
-		assert(v.GetExecActionNodePath()).Equal("")
+		assert(v.GetExecActionNodePath()).Equals("")
 		v.Close()
 	})
 
 	t.Run("node is not nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(testReply(true, nil, nil, func(rt Runtime) Return {
-			assert(rt.thread.GetExecActionNodePath()).Equal("#.test:Eval")
+			assert(rt.thread.GetExecActionNodePath()).Equals("#.test:Eval")
 			return rt.Reply(true)
-		})).Equal(true, nil)
+		})).Equals(true, nil)
 	})
 }
 
@@ -507,16 +507,16 @@ func TestRpcThread_GetExecServicePath(t *testing.T) {
 	t.Run("node is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := newThread(testProcessor, 3*time.Second, 2048, fnEvalFinish)
-		assert(v.GetExecServicePath()).Equal("")
+		assert(v.GetExecServicePath()).Equals("")
 		v.Close()
 	})
 
 	t.Run("node is not nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(testReply(true, nil, nil, func(rt Runtime) Return {
-			assert(rt.thread.GetExecServicePath()).Equal("#.test")
+			assert(rt.thread.GetExecServicePath()).Equals("#.test")
 			return rt.Reply(true)
-		})).Equal(true, nil)
+		})).Equals(true, nil)
 	})
 }
 
@@ -524,7 +524,7 @@ func TestRpcThread_GetExecActionDebug(t *testing.T) {
 	t.Run("node is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := newThread(testProcessor, 3*time.Second, 2048, fnEvalFinish)
-		assert(v.GetExecActionDebug()).Equal("")
+		assert(v.GetExecActionDebug()).Equals("")
 		v.Close()
 	})
 
@@ -534,9 +534,9 @@ func TestRpcThread_GetExecActionDebug(t *testing.T) {
 			(*rpcActionNode)(rt.thread.top.actionNode).meta.fileLine =
 				"/file:001"
 			assert(rt.thread.GetExecActionDebug()).
-				Equal("#.test:Eval /file:001")
+				Equals("#.test:Eval /file:001")
 			return rt.Reply(true)
-		})).Equal(true, nil)
+		})).Equals(true, nil)
 	})
 }
 
@@ -551,7 +551,7 @@ func TestRpcThread_Write(t *testing.T) {
 			ret, s := thread.Write(v, 0, true), base.GetFileLine(0)
 			source = s
 			return ret
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrUnsupportedValue.AddDebug(
 				"value[\"v\"][\"v\"][\"v\"][\"v\"][\"v\"][\"v\"][\"v\"][\"v\"]"+
@@ -576,7 +576,7 @@ func TestRpcThread_Write(t *testing.T) {
 			ret, s := thread.Write(make(chan bool), 0, true), getFL(0)
 			source = s
 			return ret
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrUnsupportedValue.
 				AddDebug("value type(chan bool) is not supported").
@@ -594,7 +594,7 @@ func TestRpcThread_Write(t *testing.T) {
 			ret, s := thread.Write((*base.Error)(nil), 0, true), getFL(0)
 			source = s
 			return ret
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrUnsupportedValue.
 				AddDebug("value is nil").
@@ -612,7 +612,7 @@ func TestRpcThread_Write(t *testing.T) {
 			ret, s := thread.Write(nilErr, 0, true), base.GetFileLine(0)
 			source = s
 			return ret
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrAction.
 				AddDebug("custom error").
@@ -629,7 +629,7 @@ func TestRpcThread_Write(t *testing.T) {
 			ret, s := thread.Write(RTValue{}, 0, true), base.GetFileLine(0)
 			source = s
 			return ret
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrUnsupportedValue.
 				AddDebug("value is not available").
@@ -647,7 +647,7 @@ func TestRpcThread_Write(t *testing.T) {
 			ret, s := thread.Write(v, 0, true), base.GetFileLine(0)
 			source = s
 			return ret
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrStream.AddDebug("#.test:Eval "+source).Standardize(),
 		)
@@ -662,7 +662,7 @@ func TestRpcThread_Write(t *testing.T) {
 			ret, s := thread.Write(true, 0, true), base.GetFileLine(0)
 			source = s
 			return ret
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrRuntimeReplyHasBeenCalled.
 				AddDebug("#.test:Eval "+source).
@@ -676,7 +676,7 @@ func TestRpcThread_Write(t *testing.T) {
 			thread := rt.thread
 			thread.Write(true, 0, false)
 			return thread.Write(true, 0, false)
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrRuntimeReplyHasBeenCalled,
 		)
@@ -691,7 +691,7 @@ func TestRpcThread_Write(t *testing.T) {
 			ret, s := thread.Write(e, 0, true), base.GetFileLine(0)
 			source = s
 			return ret
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrUnsupportedValue.
 				AddDebug("#.test:Eval "+source).
@@ -707,7 +707,7 @@ func TestRpcThread_Write(t *testing.T) {
 			ret, s := thread.Write(base.ErrStream, 0, true), base.GetFileLine(0)
 			source = s
 			return ret
-		})).Equal(
+		})).Equals(
 			nil,
 			base.ErrStream.AddDebug("#.test:Eval "+source).Standardize(),
 		)
@@ -718,7 +718,7 @@ func TestRpcThread_Write(t *testing.T) {
 		assert(testReply(true, nil, nil, func(rt Runtime) Return {
 			thread := rt.thread
 			return thread.Write(int64(12), 0, true)
-		})).Equal(int64(12), nil)
+		})).Equals(int64(12), nil)
 	})
 }
 
@@ -765,7 +765,7 @@ func TestRpcThread_Eval(t *testing.T) {
 		stream.WriteString("")
 		assert(testReply(true, nil, nil, func(rt Runtime) Return {
 			return rt.Reply(true)
-		}, stream)).Equal(nil, base.ErrStream)
+		}, stream)).Equals(nil, base.ErrStream)
 	})
 
 	t.Run("action path is not mounted", func(t *testing.T) {
@@ -776,7 +776,7 @@ func TestRpcThread_Eval(t *testing.T) {
 		stream.WriteString("")
 		assert(testReply(true, nil, nil, func(rt Runtime) Return {
 			return rt.Reply(true)
-		}, stream)).Equal(
+		}, stream)).Equals(
 			nil,
 			base.ErrTargetNotExist.
 				AddDebug("rpc-call: #.system:Eval does not exist").
@@ -792,7 +792,7 @@ func TestRpcThread_Eval(t *testing.T) {
 		stream.WriteString("")
 		assert(testReply(true, nil, nil, func(rt Runtime) Return {
 			return rt.Reply(true)
-		}, stream)).Equal(
+		}, stream)).Equals(
 			nil,
 			base.ErrCallOverflow.
 				AddDebug("call #.test:Eval level(17) overflows").
@@ -808,7 +808,7 @@ func TestRpcThread_Eval(t *testing.T) {
 		stream.WriteBool(true)
 		assert(testReply(true, nil, nil, func(rt Runtime) Return {
 			return rt.Reply(true)
-		}, stream)).Equal(nil, base.ErrStream)
+		}, stream)).Equals(nil, base.ErrStream)
 	})
 
 	t.Run("call with all type value", func(t *testing.T) {
@@ -824,7 +824,7 @@ func TestRpcThread_Eval(t *testing.T) {
 				true, int64(3), uint64(3), float64(3), "hello", []byte("hello"),
 				Array{1}, Map{"name": "kitty"}, true, Array{2},
 				Map{"name": "doggy"},
-			)).Equal(true, nil)
+			)).Equals(true, nil)
 		}
 		fnTest(true, nil)
 		fnTest(true, &testFuncCache{})
@@ -847,13 +847,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 1st argument does not match. "+
 							"want: rpc.Bool got: rpc.Int64",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -881,13 +881,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 2nd argument does not match. "+
 							"want: rpc.Int64 got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -915,13 +915,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 3rd argument does not match. "+
 							"want: rpc.Uint64 got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -949,13 +949,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 4th argument does not match. "+
 							"want: rpc.Float64 got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -983,13 +983,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 5th argument does not match. "+
 							"want: rpc.String got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -1017,13 +1017,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 6th argument does not match. "+
 							"want: rpc.Bytes got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -1051,13 +1051,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 7th argument does not match. "+
 							"want: rpc.Array got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -1084,13 +1084,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 8th argument does not match. "+
 							"want: rpc.Map got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -1120,7 +1120,7 @@ func TestRpcThread_Eval(t *testing.T) {
 				) Return {
 					return rt.Reply(true)
 				}, sendStream)).
-				Equal(nil, base.ErrStream)
+				Equals(nil, base.ErrStream)
 		}
 		fnTest(true, nil)
 		fnTest(false, nil)
@@ -1145,13 +1145,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 10th argument does not match. "+
 							"want: rpc.RTArray got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -1178,13 +1178,13 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 11th argument does not match. "+
 							"want: rpc.RTMap got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).Standardize())
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval arguments does not match",
 					).Standardize())
 			}
@@ -1212,7 +1212,7 @@ func TestRpcThread_Eval(t *testing.T) {
 				) Return {
 					return rt.Reply(true)
 				}, sendStream)).
-				Equal(nil, base.ErrStream)
+				Equals(nil, base.ErrStream)
 		}
 		fnTest(true, nil)
 		fnTest(false, nil)
@@ -1240,7 +1240,7 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 1st argument does not match. "+
 							"want: int16 got: rpc.Bool",
 					).AddDebug("#.test:Eval "+source).
@@ -1250,7 +1250,7 @@ func TestRpcThread_Eval(t *testing.T) {
 					)
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.
+					Equals(nil, base.ErrArgumentsNotMatch.
 						AddDebug(
 							"rpc-call: #.test:Eval arguments does not match",
 						).
@@ -1286,7 +1286,7 @@ func TestRpcThread_Eval(t *testing.T) {
 
 			if dbg {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.AddDebug(
+					Equals(nil, base.ErrArgumentsNotMatch.AddDebug(
 						"rpc-call: #.test:Eval 1st argument does not match. "+
 							"want: int16 got: <nil>",
 					).AddDebug("#.test:Eval "+source).
@@ -1296,7 +1296,7 @@ func TestRpcThread_Eval(t *testing.T) {
 					)
 			} else {
 				assert(ParseResponseStream(stream)).
-					Equal(nil, base.ErrArgumentsNotMatch.
+					Equals(nil, base.ErrArgumentsNotMatch.
 						AddDebug(
 							"rpc-call: #.test:Eval arguments does not match",
 						).
@@ -1324,9 +1324,9 @@ func TestRpcThread_Eval(t *testing.T) {
 				AddDebug("runtime error: error").
 				AddDebug("#.test:Eval " + source)
 
-			assert(ret).Equal(nil)
+			assert(ret).Equals(nil)
 			assert(err).IsNotNil()
-			assert(err.GetCode()).Equal(expectErr.GetCode())
+			assert(err.GetCode()).Equals(expectErr.GetCode())
 			assert(strings.HasPrefix(
 				err.GetMessage(),
 				expectErr.GetMessage(),
@@ -1399,7 +1399,7 @@ func TestRpcThread_Eval(t *testing.T) {
 			func(rt Runtime) Return {
 				return emptyReturn
 			})
-		assert(ParseResponseStream(stream)).Equal(
+		assert(ParseResponseStream(stream)).Equals(
 			nil,
 			base.ErrRuntimeExternalReturn.
 				AddDebug("#.test:Eval "+source).
@@ -1422,6 +1422,6 @@ func TestRpcThread_Eval(t *testing.T) {
 				<-wait
 				return ret
 			}),
-		).Equal(true, nil)
+		).Equals(true, nil)
 	})
 }

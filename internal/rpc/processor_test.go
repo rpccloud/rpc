@@ -55,19 +55,19 @@ func TestRpcActionNode_GetConfig(t *testing.T) {
 	t.Run("data is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &rpcServiceNode{}
-		assert(v.GetConfig("name")).Equal(nil, false)
+		assert(v.GetConfig("name")).Equals(nil, false)
 	})
 
 	t.Run("key does not exist", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &rpcServiceNode{data: Map{"age": 18}}
-		assert(v.GetConfig("name")).Equal(nil, false)
+		assert(v.GetConfig("name")).Equals(nil, false)
 	})
 
 	t.Run("key exists", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &rpcServiceNode{data: Map{"age": 18}}
-		assert(v.GetConfig("age")).Equal(18, true)
+		assert(v.GetConfig("age")).Equals(18, true)
 	})
 }
 
@@ -76,21 +76,21 @@ func TestRpcActionNode_SetConfig(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &rpcServiceNode{}
 		v.SetConfig("age", 3)
-		assert(v.data).Equal(nil)
+		assert(v.data).Equals(nil)
 	})
 
 	t.Run("key does not exist", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &rpcServiceNode{data: Map{}}
 		v.SetConfig("age", 3)
-		assert(v.data).Equal(Map{"age": 3})
+		assert(v.data).Equals(Map{"age": 3})
 	})
 
 	t.Run("key exists", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &rpcServiceNode{data: Map{"age": 5}}
 		v.SetConfig("age", 3)
-		assert(v.data).Equal(Map{"age": 3})
+		assert(v.data).Equals(Map{"age": 3})
 	})
 }
 
@@ -105,10 +105,10 @@ func TestProcessor(t *testing.T) {
 		assert(actionNameRegex.MatchString("onMount")).IsTrue()
 		assert(actionNameRegex.MatchString("sayHello")).IsTrue()
 		assert(actionNameRegex.MatchString("$sayHello")).IsFalse()
-		assert(rootName).Equal("#")
-		assert(freeGroups).Equal(1024)
-		assert(processorStatusClosed).Equal(0)
-		assert(processorStatusRunning).Equal(1)
+		assert(rootName).Equals("#")
+		assert(freeGroups).Equals(1024)
+		assert(processorStatusClosed).Equals(0)
+		assert(processorStatusRunning).Equals(1)
 	})
 }
 
@@ -119,7 +119,7 @@ func TestNewProcessor(t *testing.T) {
 			NewProcessor(
 				1024, 16, 16, 2048, nil, 5*time.Second, nil, nil,
 			)
-		})).Equal("streamReceiver is nil")
+		})).Equals("streamReceiver is nil")
 	})
 
 	t.Run("numOfThreads <= 0", func(t *testing.T) {
@@ -127,9 +127,9 @@ func TestNewProcessor(t *testing.T) {
 		streamReceiver := NewTestStreamReceiver()
 		assert(NewProcessor(
 			0, 16, 16, 2048, nil, 5*time.Second, nil, streamReceiver,
-		)).Equal(nil)
+		)).Equals(nil)
 		assert(ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrNumOfThreadsIsWrong)
+			Equals(nil, base.ErrNumOfThreadsIsWrong)
 	})
 
 	t.Run("maxNodeDepth <= 0", func(t *testing.T) {
@@ -137,9 +137,9 @@ func TestNewProcessor(t *testing.T) {
 		streamReceiver := NewTestStreamReceiver()
 		assert(NewProcessor(
 			1024, 0, 16, 2048, nil, 5*time.Second, nil, streamReceiver,
-		)).Equal(nil)
+		)).Equals(nil)
 		assert(ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrMaxNodeDepthIsWrong)
+			Equals(nil, base.ErrMaxNodeDepthIsWrong)
 	})
 
 	t.Run("maxCallDepth <= 0", func(t *testing.T) {
@@ -147,9 +147,9 @@ func TestNewProcessor(t *testing.T) {
 		streamReceiver := NewTestStreamReceiver()
 		assert(NewProcessor(
 			1024, 16, 0, 2048, nil, 5*time.Second, nil, streamReceiver,
-		)).Equal(nil)
+		)).Equals(nil)
 		assert(ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrProcessorMaxCallDepthIsWrong)
+			Equals(nil, base.ErrProcessorMaxCallDepthIsWrong)
 	})
 
 	t.Run("mount service error", func(t *testing.T) {
@@ -158,9 +158,9 @@ func TestNewProcessor(t *testing.T) {
 		assert(NewProcessor(
 			1024, 16, 16, 2048, nil, 5*time.Second,
 			[]*ServiceMeta{nil}, streamReceiver,
-		)).Equal(nil)
+		)).Equals(nil)
 		assert(ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrProcessorNodeMetaIsNil)
+			Equals(nil, base.ErrProcessorNodeMetaIsNil)
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -177,7 +177,7 @@ func TestNewProcessor(t *testing.T) {
 			NewTestStreamReceiver(),
 		)
 		assert(processor).IsNotNil()
-		assert(len(processor.threads)).Equal(freeGroups)
+		assert(len(processor.threads)).Equals(freeGroups)
 		_ = processor.Close()
 	})
 
@@ -198,7 +198,7 @@ func TestNewProcessor(t *testing.T) {
 		assert(processor).IsNotNil()
 		base.PublishPanic(base.ErrStream)
 		assert(ParseResponseStream(streamReceiver.GetStream())).
-			Equal(nil, base.ErrStream)
+			Equals(nil, base.ErrStream)
 		_ = processor.Close()
 	})
 
@@ -228,10 +228,10 @@ func TestNewProcessor(t *testing.T) {
 			NewTestStreamReceiver(),
 		)
 		assert(processor).IsNotNil()
-		assert(<-wait).Equal("$onMount called")
-		assert(<-wait).Equal("$onUpdateConfig called")
+		assert(<-wait).Equals("$onMount called")
+		assert(<-wait).Equals("$onUpdateConfig called")
 		processor.Close()
-		assert(<-wait).Equal("$onUnmount called")
+		assert(<-wait).Equals("$onUnmount called")
 	})
 
 	t.Run("test ok (10K calls)", func(t *testing.T) {
@@ -267,7 +267,7 @@ func TestNewProcessor(t *testing.T) {
 
 		for i := 0; i < 10000; i++ {
 			assert(ParseResponseStream(streamReceiver.GetStream())).
-				Equal(true, nil)
+				Equals(true, nil)
 		}
 
 		processor.Close()
@@ -288,7 +288,7 @@ func TestProcessor_Close(t *testing.T) {
 			NewTestStreamReceiver(),
 		)
 		processor.Close()
-		assert(processor.Close()).Equal(false)
+		assert(processor.Close()).Equals(false)
 	})
 
 	t.Run("close timeout", func(t *testing.T) {
@@ -333,7 +333,7 @@ func TestProcessor_Close(t *testing.T) {
 
 			mutex.Lock()
 			if count == 1 {
-				assert(ParseResponseStream(streamReceiver.GetStream())).Equal(
+				assert(ParseResponseStream(streamReceiver.GetStream())).Equals(
 					nil,
 					base.ErrActionCloseTimeout.AddDebug(fmt.Sprintf(
 						"the following actions can not close: \n\t%s "+
@@ -342,7 +342,7 @@ func TestProcessor_Close(t *testing.T) {
 					)).Standardize(),
 				)
 			} else {
-				assert(ParseResponseStream(streamReceiver.GetStream())).Equal(
+				assert(ParseResponseStream(streamReceiver.GetStream())).Equals(
 					nil,
 					base.ErrActionCloseTimeout.AddDebug(fmt.Sprintf(
 						"the following actions can not close: \n\t%s "+
@@ -410,7 +410,7 @@ func TestProcessor_PutStream(t *testing.T) {
 		for i := 0; i < len(processor.freeCHArray); i++ {
 			freeSum += len(processor.freeCHArray[i])
 		}
-		assert(freeSum).Equal(freeGroups * 2)
+		assert(freeSum).Equals(freeGroups * 2)
 	})
 }
 
@@ -441,7 +441,7 @@ func TestProcessor_BuildCache(t *testing.T) {
 		defer processor.Close()
 		assert(processor.BuildCache("pkgName", tmpFile)).IsNil()
 		assert(base.ReadFromFile(tmpFile)).
-			Equal(base.ReadFromFile(snapshotFile))
+			Equals(base.ReadFromFile(snapshotFile))
 	})
 
 	t.Run("service is not empty", func(t *testing.T) {
@@ -470,7 +470,7 @@ func TestProcessor_BuildCache(t *testing.T) {
 		defer processor.Close()
 		assert(processor.BuildCache("pkgName", tmpFile)).IsNil()
 		assert(base.ReadFromFile(tmpFile)).
-			Equal(base.ReadFromFile(snapshotFile))
+			Equals(base.ReadFromFile(snapshotFile))
 	})
 
 	t.Run("processor is closed", func(t *testing.T) {
@@ -487,7 +487,7 @@ func TestProcessor_BuildCache(t *testing.T) {
 		)
 		processor.Close()
 		assert(processor.BuildCache("pkgName", "")).
-			Equal(base.ErrProcessorIsNotRunning)
+			Equals(base.ErrProcessorIsNotRunning)
 	})
 }
 
@@ -524,8 +524,8 @@ func TestProcessor_onUpdateConfig(t *testing.T) {
 			NewTestStreamReceiver(),
 		)
 		processor.onUpdateConfig()
-		assert(<-waitCH).Equal(true)
-		assert(<-waitCH).Equal(true)
+		assert(<-waitCH).Equals(true)
+		assert(<-waitCH).Equals(true)
 		processor.Close()
 	})
 }
@@ -562,14 +562,14 @@ func TestProcessor_invokeSystemAction(t *testing.T) {
 		)
 
 		// for default onMount
-		assert(<-waitCH).Equal(true)
+		assert(<-waitCH).Equals(true)
 		assert(processor.invokeSystemAction("onMount", "#.test")).IsTrue()
 		assert(processor.invokeSystemAction("onUpdateConfig", "#.test")).
 			IsTrue()
 		assert(processor.invokeSystemAction("onUnmount", "#.test")).IsTrue()
-		assert(<-waitCH).Equal(true)
-		assert(<-waitCH).Equal(true)
-		assert(<-waitCH).Equal(true)
+		assert(<-waitCH).Equals(true)
+		assert(<-waitCH).Equals(true)
+		assert(<-waitCH).Equals(true)
 		processor.Close()
 	})
 }
@@ -579,7 +579,7 @@ func TestProcessor_mountNode(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(testProcessorMountError([]*ServiceMeta{
 			nil,
-		})).Equal(base.ErrProcessorNodeMetaIsNil)
+		})).Equals(base.ErrProcessorNodeMetaIsNil)
 	})
 
 	t.Run("service name is illegal", func(t *testing.T) {
@@ -588,7 +588,7 @@ func TestProcessor_mountNode(t *testing.T) {
 			name:     "+",
 			service:  NewService(),
 			fileLine: "dbg",
-		}})).Equal(base.ErrServiceName.
+		}})).Equals(base.ErrServiceName.
 			AddDebug("service name + is illegal").
 			AddDebug("dbg").
 			Standardize(),
@@ -601,7 +601,7 @@ func TestProcessor_mountNode(t *testing.T) {
 			name:     "abc",
 			service:  nil,
 			fileLine: "dbg",
-		}})).Equal(base.ErrServiceIsNil.AddDebug("dbg").Standardize())
+		}})).Equals(base.ErrServiceIsNil.AddDebug("dbg").Standardize())
 	})
 
 	t.Run("depth overflows", func(t *testing.T) {
@@ -612,7 +612,7 @@ func TestProcessor_mountNode(t *testing.T) {
 			name:     "s",
 			service:  NewService().AddChildService("s", embedService, nil),
 			fileLine: "dbg",
-		}})).Equal(base.ErrServiceOverflow.AddDebug(
+		}})).Equals(base.ErrServiceOverflow.AddDebug(
 			"service path #.s.s.s overflows (max depth: 2, current depth:3)",
 		).AddDebug(source).Standardize())
 	})
@@ -627,7 +627,7 @@ func TestProcessor_mountNode(t *testing.T) {
 			name:     "user",
 			service:  NewService(),
 			fileLine: "Debug2",
-		}})).Equal(base.ErrServiceName.
+		}})).Equals(base.ErrServiceName.
 			AddDebug("duplicated service name user").
 			AddDebug("current:\n\tDebug2\nconflict:\n\tDebug1").
 			Standardize(),
@@ -644,7 +644,7 @@ func TestProcessor_mountNode(t *testing.T) {
 			name:     "user",
 			service:  NewService(),
 			fileLine: "dbg2",
-		}})).Equal(base.ErrServiceName.
+		}})).Equals(base.ErrServiceName.
 			AddDebug("duplicated service name user").
 			AddDebug("current:\n\tdbg2\nconflict:\n\tdbg1").
 			Standardize(),
@@ -660,7 +660,7 @@ func TestProcessor_mountNode(t *testing.T) {
 				actions:  []*ActionMeta{nil},
 			},
 			fileLine: "",
-		}})).Equal(base.ErrProcessorActionMetaIsNil)
+		}})).Equals(base.ErrProcessorActionMetaIsNil)
 	})
 
 	t.Run("mount children error", func(t *testing.T) {
@@ -672,7 +672,7 @@ func TestProcessor_mountNode(t *testing.T) {
 				actions:  []*ActionMeta{},
 			},
 			fileLine: "",
-		}})).Equal(base.ErrProcessorNodeMetaIsNil)
+		}})).Equals(base.ErrProcessorNodeMetaIsNil)
 	})
 
 	t.Run("test ok", func(t *testing.T) {
@@ -696,7 +696,7 @@ func TestProcessor_mountNode(t *testing.T) {
 			NewTestStreamReceiver(),
 		)
 		assert(processor).IsNotNil()
-		assert(processor.servicesMap["#.user"]).Equal(&rpcServiceNode{
+		assert(processor.servicesMap["#.user"]).Equals(&rpcServiceNode{
 			path: "#.user",
 			addMeta: &ServiceMeta{
 				name:     "user",
@@ -722,7 +722,7 @@ func TestProcessor_mountAction(t *testing.T) {
 				actions:  []*ActionMeta{nil},
 			},
 			fileLine: "nodeDebug",
-		}})).Equal(base.ErrProcessorActionMetaIsNil)
+		}})).Equals(base.ErrProcessorActionMetaIsNil)
 	})
 
 	t.Run("name is illegal", func(t *testing.T) {
@@ -738,7 +738,7 @@ func TestProcessor_mountAction(t *testing.T) {
 				}},
 			},
 			fileLine: "nodeDebug",
-		}})).Equal(
+		}})).Equals(
 			base.ErrActionName.
 				AddDebug("action name + is illegal").
 				AddDebug("actionDebug").
@@ -759,7 +759,7 @@ func TestProcessor_mountAction(t *testing.T) {
 				}},
 			},
 			fileLine: "nodeDebug",
-		}})).Equal(
+		}})).Equals(
 			base.ErrActionHandler.
 				AddDebug("handler is nil").
 				AddDebug("actionDebug").
@@ -780,7 +780,7 @@ func TestProcessor_mountAction(t *testing.T) {
 				}},
 			},
 			fileLine: "nodeDebug",
-		}})).Equal(
+		}})).Equals(
 			base.ErrActionHandler.AddDebug(
 				"handler must be func(rt rpc.Runtime, ...) rpc.Return",
 			).AddDebug("actionDebug").Standardize(),
@@ -800,7 +800,7 @@ func TestProcessor_mountAction(t *testing.T) {
 				}},
 			},
 			fileLine: "nodeDebug",
-		}})).Equal(
+		}})).Equals(
 			base.ErrActionHandler.
 				AddDebug("handler 1st argument type must be rpc.Runtime").
 				AddDebug("actionDebug").
@@ -821,7 +821,7 @@ func TestProcessor_mountAction(t *testing.T) {
 				}},
 			},
 			fileLine: "nodeDebug",
-		}})).Equal(
+		}})).Equals(
 			base.ErrActionHandler.
 				AddDebug("handler return type must be rpc.Return").
 				AddDebug("actionDebug").
@@ -846,7 +846,7 @@ func TestProcessor_mountAction(t *testing.T) {
 				}},
 			},
 			fileLine: "nodeDebug",
-		}})).Equal(
+		}})).Equals(
 			base.ErrActionName.
 				AddDebug("duplicated action name login").
 				AddDebug("current:\n\tactionDebug2\nconflict:\n\tactionDebug1").
@@ -881,7 +881,7 @@ func TestProcessor_mountAction(t *testing.T) {
 			NewTestStreamReceiver(),
 		)
 		assert(processor).IsNotNil()
-		assert(processor.actionsMap["#.user:login"]).Equal(&rpcActionNode{
+		assert(processor.actionsMap["#.user:login"]).Equals(&rpcActionNode{
 			path:       "#.user:login",
 			meta:       processor.actionsMap["#.user:login"].meta,
 			service:    processor.servicesMap["#.user"],
@@ -940,17 +940,17 @@ func TestProcessor_unmount(t *testing.T) {
 		)
 
 		processor.unmount("#.test1")
-		assert(<-waitCH).Equal("test1")
-		assert(len(processor.servicesMap)).Equal(3)
-		assert(len(processor.actionsMap)).Equal(4)
+		assert(<-waitCH).Equals("test1")
+		assert(len(processor.servicesMap)).Equals(3)
+		assert(len(processor.actionsMap)).Equals(4)
 		processor.unmount("#.test2")
-		assert(<-waitCH).Equal("test2")
-		assert(len(processor.servicesMap)).Equal(2)
-		assert(len(processor.actionsMap)).Equal(2)
+		assert(<-waitCH).Equals("test2")
+		assert(len(processor.servicesMap)).Equals(2)
+		assert(len(processor.actionsMap)).Equals(2)
 		processor.unmount("#")
-		assert(<-waitCH).Equal("test3")
-		assert(len(processor.servicesMap)).Equal(0)
-		assert(len(processor.actionsMap)).Equal(0)
+		assert(<-waitCH).Equals("test3")
+		assert(len(processor.servicesMap)).Equals(0)
+		assert(len(processor.actionsMap)).Equals(0)
 		processor.Close()
 	})
 }
