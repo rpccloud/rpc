@@ -236,10 +236,11 @@ func (p *testSingleReceiver) PeekError() *base.Error {
 func TestAdapter(t *testing.T) {
 	type testItem struct {
 		network string
+		addr    string
 		isTLS   bool
 	}
 
-	fnTest := func(isTLS bool, network string) {
+	fnTest := func(isTLS bool, network string, addr string) {
 		assert := base.NewAssert(t)
 		_, curFile, _, _ := runtime.Caller(0)
 		curDir := path.Dir(curFile)
@@ -261,9 +262,10 @@ func TestAdapter(t *testing.T) {
 
 		serverReceiver := newTestSingleReceiver()
 		serverAdapter := NewServerAdapter(
-			false, network, "localhost:65431", tlsServerConfig,
+			false, network, addr, tlsServerConfig,
 			1200, 1200, serverReceiver,
 		)
+
 		assert(serverAdapter.Open()).IsTrue()
 		go func() {
 			assert(serverAdapter.Run()).IsTrue()
@@ -274,7 +276,7 @@ func TestAdapter(t *testing.T) {
 
 		clientReceiver := newTestSingleReceiver()
 		clientAdapter := NewClientAdapter(
-			network, "localhost:65431", tlsClientConfig,
+			network, addr, tlsClientConfig,
 			1200, 1200, clientReceiver,
 		)
 		assert(clientAdapter.Open()).IsTrue()
@@ -337,16 +339,16 @@ func TestAdapter(t *testing.T) {
 
 	t.Run("test", func(t *testing.T) {
 		for _, it := range []testItem{
-			{network: "tcp", isTLS: false},
-			{network: "tcp", isTLS: true},
-			{network: "tcp4", isTLS: false},
-			{network: "tcp4", isTLS: true},
-			{network: "tcp6", isTLS: false},
-			{network: "tcp6", isTLS: true},
-			{network: "ws", isTLS: false},
-			{network: "wss", isTLS: true},
+			{network: "tcp", addr: "127.0.0.1:65431", isTLS: false},
+			{network: "tcp", addr: "127.0.0.1:65431", isTLS: true},
+			{network: "tcp4", addr: "127.0.0.1:65431", isTLS: false},
+			{network: "tcp4", addr: "127.0.0.1:65431", isTLS: true},
+			{network: "tcp6", addr: "[::1]:65431", isTLS: false},
+			{network: "tcp6", addr: "[::1]:65431", isTLS: true},
+			{network: "ws", addr: "127.0.0.1:65431", isTLS: false},
+			{network: "wss", addr: "127.0.0.1:65431", isTLS: true},
 		} {
-			fnTest(it.isTLS, it.network)
+			fnTest(it.isTLS, it.network, it.addr)
 		}
 	})
 
@@ -354,12 +356,12 @@ func TestAdapter(t *testing.T) {
 		assert := base.NewAssert(t)
 
 		assert(NewClientAdapter(
-			"err", "localhost:65432", nil,
+			"err", "127.0.0.1:65432", nil,
 			1200, 1200, newTestSingleReceiver(),
 		).Open()).IsFalse()
 
 		assert(NewServerAdapter(
-			false, "err", "localhost:65432", nil,
+			false, "err", "127.0.0.1:65432", nil,
 			1200, 1200, newTestSingleReceiver(),
 		).Open()).IsFalse()
 	})
