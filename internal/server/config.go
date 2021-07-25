@@ -9,8 +9,6 @@ import (
 	"github.com/rpccloud/rpc/internal/rpc"
 )
 
-var fnNumCPU = runtime.NumCPU
-
 type listener struct {
 	isDebug   bool
 	network   string
@@ -121,7 +119,7 @@ func (p *SessionConfig) clone() *SessionConfig {
 }
 
 type ServerConfig struct {
-	isLogToScreen    bool
+	logToScreen      bool
 	logFile          string
 	logLevel         base.ErrorLevel
 	numOfThreads     int
@@ -135,10 +133,10 @@ type ServerConfig struct {
 
 func GetDefaultServerConfig() *ServerConfig {
 	return &ServerConfig{
-		isLogToScreen:    true,
+		logToScreen:      true,
 		logFile:          "",
 		logLevel:         base.ErrorLogAll,
-		numOfThreads:     base.MinInt(fnNumCPU(), 64) * 16384,
+		numOfThreads:     base.MinInt(runtime.NumCPU(), 64) * 16384,
 		maxNodeDepth:     128,
 		maxCallDepth:     128,
 		threadBufferSize: 2048,
@@ -148,8 +146,8 @@ func GetDefaultServerConfig() *ServerConfig {
 	}
 }
 
-func (p *ServerConfig) SetIsLogToScreen(isLogToScreen bool) *ServerConfig {
-	p.isLogToScreen = isLogToScreen
+func (p *ServerConfig) SetLogToScreen(logToScreen bool) *ServerConfig {
+	p.logToScreen = logToScreen
 	return p
 }
 
@@ -200,13 +198,17 @@ func (p *ServerConfig) SetactionCache(
 }
 
 func (p *ServerConfig) SetSession(session *SessionConfig) *ServerConfig {
+	if session == nil {
+		session = GetDefaultSessionConfig()
+	}
+
 	p.session = session
 	return p
 }
 
 func (p *ServerConfig) clone() *ServerConfig {
 	return &ServerConfig{
-		isLogToScreen:    p.isLogToScreen,
+		logToScreen:      p.logToScreen,
 		logFile:          p.logFile,
 		logLevel:         p.logLevel,
 		numOfThreads:     p.numOfThreads,

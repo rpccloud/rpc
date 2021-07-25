@@ -41,12 +41,6 @@ func captureStdout(fn func()) string {
 	return ret
 }
 
-type testActionCache struct{}
-
-func (p *testActionCache) Get(_ string) rpc.ActionCacheFunc {
-	return nil
-}
-
 func TestNewServer(t *testing.T) {
 	t.Run("config is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)

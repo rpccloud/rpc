@@ -161,7 +161,7 @@ func (p *Server) Open() bool {
 		sessionServer := (*SessionServer)(nil)
 
 		streamHub := rpc.NewStreamHub(
-			p.config.isLogToScreen,
+			p.config.logToScreen,
 			p.config.logFile,
 			p.config.logLevel,
 			rpc.StreamHubCallback{
