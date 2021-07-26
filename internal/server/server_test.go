@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/rpccloud/rpc/internal/base"
+	"github.com/rpccloud/rpc/internal/client"
 	"github.com/rpccloud/rpc/internal/rpc"
 )
 
@@ -200,186 +201,6 @@ func TestServer_BuildReplyCache(t *testing.T) {
 	})
 }
 
-// func TestServer_OnReceiveStream(t *testing.T) {
-// 	t.Run("StreamKindRPCInternalRequest", func(t *testing.T) {
-// 		assert := base.NewAssert(t)
-
-// 		logReceiver := rpc.NewTestStreamReceiver()
-// 		v := NewServer(logReceiver).
-// 			SetNumOfThreads(1024).
-// 			Listen("tcp", "127.0.0.1:8888", nil)
-
-// 		go func() {
-// 			v.Open()
-// 		}()
-
-// 		stream := rpc.NewStream()
-// 		stream.SetKind(rpc.StreamKindRPCRequest)
-// 		stream.SetDepth(0)
-// 		stream.WriteString("#.test.Eval")
-// 		stream.WriteString("@")
-
-// 		for !v.IsRunning() {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-
-// 		v.OnReceiveStream(stream)
-
-// 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-// 			Equal(nil, base.ErrServerSessionNotFound)
-
-// 		for !base.IsTCPPortOccupied(8888) {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-// 		v.Close()
-// 	})
-
-// 	t.Run("StreamKindRPCExternalRequest", func(t *testing.T) {
-// 		assert := base.NewAssert(t)
-
-// 		logReceiver := rpc.NewTestStreamReceiver()
-// 		v := NewServer(logReceiver).
-// 			SetNumOfThreads(1024).
-// 			Listen("tcp", "127.0.0.1:8888", nil)
-
-// 		go func() {
-// 			v.Open()
-// 		}()
-
-// 		stream := rpc.NewStream()
-// 		stream.SetKind(rpc.StreamKindRPCRequest)
-// 		stream.SetDepth(0)
-// 		stream.WriteString("#.test.Eval")
-// 		stream.WriteString("@")
-
-// 		for !v.IsRunning() {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-
-// 		v.OnReceiveStream(stream)
-
-// 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-// 			Equal(nil, base.ErrServerSessionNotFound)
-
-// 		for !base.IsTCPPortOccupied(8888) {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-// 		v.Close()
-// 	})
-
-// 	t.Run("StreamKindRPCResponseOK", func(t *testing.T) {
-// 		assert := base.NewAssert(t)
-// 		logReceiver := rpc.NewTestStreamReceiver()
-// 		v := NewServer(logReceiver).
-// 			SetNumOfThreads(1024).
-// 			Listen("tcp", "127.0.0.1:8888", nil)
-
-// 		go func() {
-// 			v.Open()
-// 		}()
-
-// 		stream := rpc.NewStream()
-// 		stream.SetKind(rpc.StreamKindRPCResponseOK)
-// 		stream.Write(true)
-
-// 		for !v.IsRunning() {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-
-// 		v.OnReceiveStream(stream)
-// 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-// 			Equal(nil, base.ErrServerSessionNotFound)
-
-// 		for !base.IsTCPPortOccupied(8888) {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-// 		v.Close()
-// 	})
-
-// 	t.Run("StreamKindRPCResponseError", func(t *testing.T) {
-// 		assert := base.NewAssert(t)
-// 		logReceiver := rpc.NewTestStreamReceiver()
-// 		v := NewServer(logReceiver).
-// 			SetNumOfThreads(1024).
-// 			Listen("tcp", "127.0.0.1:8888", nil)
-// 		go func() {
-// 			v.Open()
-// 		}()
-
-// 		stream := rpc.NewStream()
-// 		stream.SetKind(rpc.StreamKindRPCResponseError)
-// 		stream.WriteUint64(uint64(base.ErrStream.GetCode()))
-// 		stream.WriteString(base.ErrStream.GetMessage())
-
-// 		for !v.IsRunning() {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-
-// 		v.OnReceiveStream(stream)
-// 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-// 			Equal(nil, base.ErrServerSessionNotFound)
-
-// 		for !base.IsTCPPortOccupied(8888) {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-// 		v.Close()
-// 	})
-
-// 	t.Run("StreamKindRPCBoardCast", func(t *testing.T) {
-// 		assert := base.NewAssert(t)
-// 		logReceiver := rpc.NewTestStreamReceiver()
-// 		v := NewServer(logReceiver).
-// 			SetNumOfThreads(1024).
-// 			Listen("tcp", "127.0.0.1:8888", nil)
-// 		go func() {
-// 			v.Open()
-// 		}()
-
-// 		stream := rpc.NewStream()
-// 		stream.SetKind(rpc.StreamKindRPCBoardCast)
-// 		stream.WriteUint64(uint64(base.ErrStream.GetCode()))
-// 		stream.WriteString(base.ErrStream.GetMessage())
-
-// 		for !v.IsRunning() {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-
-// 		v.OnReceiveStream(stream)
-// 		assert(rpc.ParseResponseStream(logReceiver.WaitStream())).
-// 			Equal(nil, base.ErrServerSessionNotFound)
-
-// 		for !base.IsTCPPortOccupied(8888) {
-// 			time.Sleep(10 * time.Millisecond)
-// 		}
-// 		v.Close()
-// 	})
-
-// 	t.Run("StreamKindSystemErrorReport log to screen", func(t *testing.T) {
-// 		assert := base.NewAssert(t)
-// 		v := NewServer(nil)
-
-// 		stream := rpc.NewStream()
-// 		stream.SetKind(rpc.StreamKindSystemErrorReport)
-// 		stream.WriteUint64(uint64(base.ErrStream.GetCode()))
-// 		stream.WriteString(base.ErrStream.GetMessage())
-// 		v.OnReceiveStream(stream)
-// 		assert(stream.GetKind() != rpc.StreamKindSystemErrorReport).IsTrue()
-// 	})
-
-// 	t.Run("StreamKindConnectResponse", func(t *testing.T) {
-// 		assert := base.NewAssert(t)
-// 		v := NewServer(nil)
-
-// 		stream := rpc.NewStream()
-// 		stream.SetKind(rpc.StreamKindConnectResponse)
-// 		stream.WriteUint64(uint64(base.ErrStream.GetCode()))
-// 		stream.WriteString(base.ErrStream.GetMessage())
-// 		v.OnReceiveStream(stream)
-// 		assert(stream.GetKind() != rpc.StreamKindConnectResponse).IsTrue()
-// 	})
-
-// }
-
 func TestServer_Open(t *testing.T) {
 	t.Run("server is already running", func(t *testing.T) {
 		assert := base.NewAssert(t)
@@ -434,6 +255,94 @@ func TestServer_Open(t *testing.T) {
 
 		assert(v.Open()).IsTrue()
 	})
+
+	t.Run("OnRPCResponseOKStream", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		service := rpc.NewService().On(
+			"SayHello",
+			func(rt rpc.Runtime) rpc.Return {
+				return rt.Reply("Hello")
+			},
+		)
+		s := NewServer(GetDefaultServerConfig().SetNumOfThreads(1024)).
+			Listen("tcp", "0.0.0.0:1234", nil).
+			AddService("test", service, nil)
+
+		go func() {
+			for !s.IsRunning() {
+				time.Sleep(10 * time.Millisecond)
+			}
+
+			c := client.NewClient(
+				"tcp4", "127.0.0.1:1234", nil, 1024, 1024, nil,
+			)
+			assert(c.Send(10*time.Second, "#.test:SayHello")).
+				Equals("Hello", nil)
+			c.Close()
+			s.Close()
+		}()
+
+		assert(s.Open()).IsTrue()
+	})
+
+	t.Run("OnRPCResponseErrorStream", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		s := NewServer(GetDefaultServerConfig().SetNumOfThreads(1024)).
+			Listen("tcp", "0.0.0.0:1234", nil)
+
+		go func() {
+			for !s.IsRunning() {
+				time.Sleep(10 * time.Millisecond)
+			}
+
+			c := client.NewClient(
+				"tcp4", "127.0.0.1:1234", nil, 1024, 1024, nil,
+			)
+			_, err := c.Send(10*time.Second, "#.test:SayHello")
+			assert(err).IsNotNil()
+			c.Close()
+			s.Close()
+		}()
+
+		assert(s.Open()).IsTrue()
+	})
+
+	t.Run("OnRPCBoardCastStream", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		service := rpc.NewService().On(
+			"SayHello",
+			func(rt rpc.Runtime) rpc.Return {
+				_ = rt.Post(rt.GetPostEndPoint(), "SayHello", "Hello")
+				return rt.Reply("Hello")
+			},
+		)
+		s := NewServer(GetDefaultServerConfig().SetNumOfThreads(1024)).
+			Listen("tcp", "0.0.0.0:1234", nil).
+			AddService("test", service, nil)
+
+		go func() {
+			for !s.IsRunning() {
+				time.Sleep(10 * time.Millisecond)
+			}
+
+			wait := make(chan bool, 1)
+			c := client.NewClient(
+				"tcp4", "127.0.0.1:1234", nil, 1024, 1024, nil,
+			)
+			c.Subscribe("#.test", "SayHello", func(value rpc.Any) {
+				assert(value).Equals("Hello")
+				wait <- true
+			})
+			assert(c.Send(10*time.Second, "#.test:SayHello")).
+				Equals("Hello", nil)
+			<-wait
+			c.Close()
+			s.Close()
+		}()
+
+		assert(s.Open()).IsTrue()
+	})
+
 }
 
 func TestServer_IsRunning(t *testing.T) {
