@@ -140,7 +140,7 @@ func NewChannel(
 							rpc.MakeSystemErrorStream(err),
 						)
 					}
-					base.WaitAtLeastDurationWhenRunning(
+					base.WaitWhileRunning(
 						startNS,
 						isRunning,
 						time.Second,

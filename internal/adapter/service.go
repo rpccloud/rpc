@@ -149,7 +149,7 @@ func (p *syncTCPServerService) Run() bool {
 						nil,
 						base.ErrSyncTCPServerServiceAccept.AddDebug(e.Error()),
 					)
-					base.WaitAtLeastDurationWhenRunning(
+					base.WaitWhileRunning(
 						base.TimeNow().UnixNano(),
 						isRunning,
 						500*time.Millisecond,
@@ -247,7 +247,7 @@ func (p *syncWSServerService) Run() bool {
 					)
 				}
 			}
-			base.WaitAtLeastDurationWhenRunning(startNS, isRunning, time.Second)
+			base.WaitWhileRunning(startNS, isRunning, time.Second)
 		}
 
 		return true
@@ -367,7 +367,7 @@ func (p *syncClientService) Run() bool {
 				p.closeConn()
 			}
 
-			base.WaitAtLeastDurationWhenRunning(
+			base.WaitWhileRunning(
 				startNS,
 				isRunning,
 				3*time.Second,

@@ -481,7 +481,7 @@ func (p *SessionServer) Open() {
 		for isRunning() {
 			startNS := base.TimeNow().UnixNano()
 			p.TimeCheck(startNS)
-			base.WaitAtLeastDurationWhenRunning(startNS, isRunning, time.Second)
+			base.WaitWhileRunning(startNS, isRunning, time.Second)
 		}
 
 		for waitCount > 0 {

@@ -73,6 +73,24 @@ func IsNil(val interface{}) (ret bool) {
 	return reflect.ValueOf(val).IsNil()
 }
 
+// MinInt64 ...
+func MinInt64(v1 int64, v2 int64) int64 {
+	if v1 < v2 {
+		return v1
+	}
+
+	return v2
+}
+
+// MaxInt64 ...
+func MaxInt64(v1 int64, v2 int64) int64 {
+	if v1 < v2 {
+		return v2
+	}
+
+	return v1
+}
+
 // MinInt ...
 func MinInt(v1 int, v2 int) int {
 	if v1 < v2 {
@@ -267,18 +285,22 @@ func ReadFromFile(filePath string) (string, error) {
 	return strings.Replace(string(ret), "\r", "", -1), nil
 }
 
-// WaitAtLeastDurationWhenRunning ...
-func WaitAtLeastDurationWhenRunning(
+// WaitWhileRunning ...
+func WaitWhileRunning(
 	startNS int64,
 	isRunning func() bool,
 	duration time.Duration,
 ) {
-	sleepTime := 100 * time.Millisecond
-	runNS := TimeNow().UnixNano() - startNS
-	sleepCount := (duration - time.Duration(runNS) + sleepTime/2) / sleepTime
-	for isRunning() && sleepCount > 0 {
-		time.Sleep(sleepTime)
-		sleepCount--
+	for isRunning() {
+		remainNS := TimeNow().UnixNano() - startNS
+
+		if remainNS <= 0 {
+			return
+		}
+
+		time.Sleep(
+			time.Duration(MinInt64(remainNS, int64(30*time.Millisecond))),
+		)
 	}
 }
 

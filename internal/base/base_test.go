@@ -269,14 +269,14 @@ func TestConvertOrdinalToString(t *testing.T) {
 	})
 }
 
-func TestWaitAtLeastDurationWhenRunning(t *testing.T) {
+func TestWaitWhenRunning(t *testing.T) {
 	t.Run("test isRunning return true", func(t *testing.T) {
 		waitCH := make(chan bool)
 		for i := 0; i < 100; i++ {
 			go func() {
 				assert := NewAssert(t)
 				startTime := TimeNow()
-				WaitAtLeastDurationWhenRunning(
+				WaitWhileRunning(
 					TimeNow().UnixNano(),
 					func() bool { return true },
 					500*time.Millisecond,
@@ -298,7 +298,7 @@ func TestWaitAtLeastDurationWhenRunning(t *testing.T) {
 			go func() {
 				assert := NewAssert(t)
 				startTime := TimeNow()
-				WaitAtLeastDurationWhenRunning(
+				WaitWhileRunning(
 					TimeNow().UnixNano(),
 					func() bool { return false },
 					500*time.Millisecond,
@@ -321,7 +321,7 @@ func TestWaitAtLeastDurationWhenRunning(t *testing.T) {
 				assert := NewAssert(t)
 				startTime := TimeNow()
 				count := 0
-				WaitAtLeastDurationWhenRunning(
+				WaitWhileRunning(
 					TimeNow().UnixNano(),
 					func() bool {
 						count++
