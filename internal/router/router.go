@@ -136,7 +136,11 @@ func NewRouter(
 							atomic.AddInt64(&connProcessing, -1)
 						}()
 
-						ret.addConn(conn)
+						if err := ret.addConn(conn); err != nil {
+							ret.streamHub.OnReceiveStream(
+								rpc.MakeSystemErrorStream(err),
+							)
+						}
 					}()
 				}
 			}
