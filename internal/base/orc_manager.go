@@ -6,27 +6,27 @@ import (
 )
 
 const (
-	orcLockBit    = 1 << 2
-	orcStatusMask = orcLockBit - 1
-
-	orcStatusClosed  = 0
-	orcStatusReady   = 1
-	orcStatusClosing = 2
+	orcStatusNone    = uint32(0)
+	orcStatusOpened  = uint32(1)
+	orcStatusRunning = uint32(2)
+	orcStatusDone    = uint32(3)
+	orcStatusClosing = uint32(4)
+	orcStatusClosed  = uint32(5)
 )
 
 // IORCService ...
 type IORCService interface {
 	Open() bool
-	Run() bool
+	Run()
 	Close() bool
 }
 
 // ORCManager ...
 type ORCManager struct {
-	sequence     uint64
-	isWaitChange bool
-	mu           sync.Mutex
-	cond         sync.Cond
+	status      uint32
+	statusCond  sync.Cond
+	runningCond sync.Cond
+	mu          sync.Mutex
 }
 
 // NewORCManager ...
@@ -34,67 +34,48 @@ func NewORCManager() *ORCManager {
 	return &ORCManager{}
 }
 
-func (p *ORCManager) getBaseSequence() uint64 {
-	return p.sequence - p.sequence%8
+func (p *ORCManager) getStatus() uint32 {
+	return atomic.LoadUint32(&p.status)
 }
 
-func (p *ORCManager) getStatus() uint64 {
-	return p.sequence % 8
-}
-
-// GetRunningFn ...
-func (p *ORCManager) GetRunningFn() func() bool {
-	baseSequence := p.getBaseSequence()
-
-	return func() bool {
-		status := atomic.LoadUint64(&p.sequence) - baseSequence
-
-		if status == orcStatusReady || status == orcStatusReady|orcLockBit {
-			return true
-		}
-
-		return func() bool {
-			p.mu.Lock()
-			defer p.mu.Unlock()
-
-			for {
-				switch p.sequence - baseSequence {
-				case orcStatusReady:
-					return true
-				case orcStatusReady | orcLockBit:
-					return true
-				default:
-					return false
-				}
-			}
-		}()
+func (p *ORCManager) setStatus(status uint32) {
+	if p.getStatus() != status {
+		atomic.StoreUint32(&p.status, status)
+		p.statusCond.Broadcast()
 	}
 }
 
-func (p *ORCManager) setStatus(status uint64) {
-	if curStatus := p.getStatus(); curStatus != status {
-		baseSequence := p.getBaseSequence()
-
-		if status == orcStatusClosed {
-			atomic.StoreUint64(&p.sequence, baseSequence+status+8)
-		} else {
-			atomic.StoreUint64(&p.sequence, baseSequence+status)
-		}
-
-		if p.isWaitChange {
-			p.isWaitChange = false
-			p.cond.Broadcast()
-		}
+func (p *ORCManager) waitForStatusChange() {
+	if p.statusCond.L == nil {
+		p.statusCond.L = &p.mu
 	}
+
+	p.statusCond.Wait()
 }
 
-func (p *ORCManager) waitStatusChange() {
-	if p.cond.L == nil {
-		p.cond.L = &p.mu
+func (p *ORCManager) decRuningCount(ptrRunningCount *int64) {
+	atomic.AddInt64(ptrRunningCount, -1)
+	p.runningCond.Broadcast()
+}
+
+func (p *ORCManager) waitForRunningCountChange() {
+	if p.runningCond.L == nil {
+		p.runningCond.L = &p.mu
 	}
 
-	p.isWaitChange = true
-	p.cond.Wait()
+	p.runningCond.Wait()
+}
+
+func (p *ORCManager) IsRunning() bool {
+	return p.getStatus() == orcStatusRunning
+}
+
+func (p *ORCManager) IsClosing() bool {
+	return p.getStatus() == orcStatusClosing
+}
+
+func (p *ORCManager) IsClosed() bool {
+	return p.getStatus() == orcStatusClosed
 }
 
 // Open ...
@@ -102,101 +83,97 @@ func (p *ORCManager) Open(onOpen func() bool) bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	for {
-		switch p.getStatus() {
-		case orcStatusClosing:
-			p.waitStatusChange()
-		case orcStatusClosing | orcLockBit:
-			p.waitStatusChange()
-		case orcStatusClosed:
-			if onOpen != nil && onOpen() {
-				p.setStatus(orcStatusReady)
-				return true
-			}
-			return false
-		default:
+	if p.getStatus() == orcStatusNone {
+		if onOpen != nil && !onOpen() {
+			p.setStatus(orcStatusClosed)
 			return false
 		}
+
+		p.setStatus(orcStatusOpened)
+		return true
 	}
+
+	return false
 }
 
 // Run ...
-func (p *ORCManager) Run(onRun func(isRunning func() bool) bool) bool {
+func (p *ORCManager) Run(onRuns ...func(isRunning func() bool)) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	for {
-		switch p.getStatus() {
-		case orcStatusReady:
-			// add lock bit
-			p.setStatus(orcStatusReady | orcLockBit)
+	if p.getStatus() == orcStatusOpened {
+		p.setStatus(orcStatusRunning)
+		numOfRunning := int64(len(onRuns))
+		ptrNumOfRunning := &numOfRunning
 
-			ret := func() bool {
-				if onRun == nil {
-					return false
+		for i := 0; i < len(onRuns); i++ {
+			go func(onRun func(isRunning func() bool)) {
+				defer func() {
+					p.decRuningCount(ptrNumOfRunning)
+				}()
+
+				if onRun != nil {
+					onRun(p.IsRunning)
 				}
+			}(onRuns[i])
+		}
 
-				isRunningFn := p.GetRunningFn()
+		// wait for all running routine done, then lock it again
+		for atomic.LoadInt64(&numOfRunning) > 0 {
+			p.waitForRunningCountChange()
+		}
 
-				// open the lock and then call didRun.
-				// at last lock again
-				p.mu.Unlock()
-				defer p.mu.Lock()
-				return onRun(isRunningFn)
-			}()
-
-			// clear lock bit
-			p.setStatus(p.getStatus() & orcStatusMask)
-
-			return ret
-		case orcStatusReady | orcLockBit:
-			p.waitStatusChange()
-		default:
-			return false
+		switch p.getStatus() {
+		case orcStatusRunning:
+			p.setStatus(orcStatusDone)
+		case orcStatusClosing:
+			p.setStatus(orcStatusClosed)
 		}
 	}
 }
 
-// Close ...
-func (p *ORCManager) Close(willClose func() bool, didClose func()) bool {
+// Close close the ORCManager
+// willClose will be called immediately if ORCManager is opened correctly.
+// didClose will be called when ORCManager is opened correctly and all onRun
+// functions (if present) have completed
+func (p *ORCManager) Close(willClose func(), didClose func()) bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	for {
-		switch p.getStatus() {
-		case orcStatusReady:
-			p.setStatus(orcStatusClosing)
-			if willClose != nil && willClose() {
-				if didClose != nil {
-					didClose()
-				}
-				p.setStatus(orcStatusClosed)
-				return true
-			}
+	status := p.getStatus()
 
-			p.setStatus(orcStatusReady)
-			return false
-		case orcStatusReady | orcLockBit:
-			p.setStatus(orcStatusClosing | orcLockBit)
-			if willClose != nil && willClose() {
-				for p.getStatus()&orcLockBit != 0 {
-					p.waitStatusChange()
-				}
-				if didClose != nil {
-					didClose()
-				}
-				p.setStatus(orcStatusClosed)
-				return true
-			}
+	if status == orcStatusRunning {
+		p.setStatus(orcStatusClosing)
 
-			p.setStatus(orcStatusReady | orcLockBit)
-			return false
-		case orcStatusClosing:
-			p.waitStatusChange()
-		case orcStatusClosing | orcLockBit:
-			p.waitStatusChange()
-		default:
-			return false
+		if willClose != nil {
+			willClose()
 		}
+
+		for p.getStatus() != orcStatusClosed {
+			p.waitForStatusChange()
+		}
+
+		if didClose != nil {
+			didClose()
+		}
+
+		return true
+	} else if status == orcStatusOpened || status == orcStatusDone {
+		if willClose != nil {
+			willClose()
+		}
+
+		p.setStatus(orcStatusClosed)
+
+		if didClose != nil {
+			didClose()
+		}
+
+		return true
+	} else if status == orcStatusNone {
+		p.setStatus(orcStatusClosed)
+		return true
+	} else {
+		return false
 	}
 }

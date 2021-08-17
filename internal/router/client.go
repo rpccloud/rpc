@@ -61,9 +61,8 @@ func (p *Client) SendStream(s *rpc.Stream) {
 
 // Close ...
 func (p *Client) Close() bool {
-	return p.orcManager.Close(func() bool {
+	return p.orcManager.Close(func() {
 		p.slot.Close()
-		return true
 	}, func() {
 		p.id.Close()
 		p.id = nil

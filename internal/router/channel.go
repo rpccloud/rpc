@@ -132,7 +132,7 @@ func NewChannel(
 
 	if connMeta != nil {
 		go func() {
-			ret.orcManager.Run(func(isRunning func() bool) bool {
+			ret.orcManager.Run(func(isRunning func() bool) {
 				for isRunning() {
 					startNS := base.TimeNow().UnixNano()
 					if err := ret.runMasterThread(index, connMeta); err != nil {
@@ -146,8 +146,6 @@ func NewChannel(
 						time.Second,
 					)
 				}
-
-				return true
 			})
 		}()
 	}
@@ -265,8 +263,7 @@ func (p *Channel) RunWithConn(sendSequence uint64, conn net.Conn) {
 	running := uint32(1)
 
 	isRunning := func() bool {
-		isChannelRunning := p.orcManager.GetRunningFn()
-		return isChannelRunning() && atomic.LoadUint32(&running) == 1
+		return p.orcManager.IsRunning() && atomic.LoadUint32(&running) == 1
 	}
 
 	p.conn = conn
@@ -461,9 +458,5 @@ func (p *Channel) runWrite(
 
 // Close ...
 func (p *Channel) Close() {
-	p.orcManager.Close(func() bool {
-		return true
-	}, func() {
-
-	})
+	p.orcManager.Close(nil, nil)
 }

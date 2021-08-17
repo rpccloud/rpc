@@ -118,7 +118,7 @@ func syncServerTestRun(
 	network string,
 	isTLS bool,
 	fakeError bool,
-) (*testSingleReceiver, bool) {
+) *testSingleReceiver {
 	_, curFile, _, _ := runtime.Caller(0)
 	curDir := path.Dir(curFile)
 
@@ -136,7 +136,6 @@ func syncServerTestRun(
 	}
 
 	waitCH := make(chan bool)
-	runOK := false
 	receiver := newTestSingleReceiver()
 	server := NewSyncServerService(NewServerAdapter(
 		false, network, "127.0.0.1:65432", tlsServerConfig,
@@ -170,7 +169,7 @@ func syncServerTestRun(
 			waitCH <- true
 		}()
 
-		runOK = server.Run()
+		server.Run()
 		waitCH <- true
 	}()
 
@@ -207,7 +206,7 @@ func syncServerTestRun(
 	}
 
 	<-waitCH
-	return receiver, runOK
+	return receiver
 }
 
 func syncServerTestClose(
@@ -443,8 +442,7 @@ func TestSyncTCPServerService_Open(t *testing.T) {
 func TestSyncTCPServerService_Run(t *testing.T) {
 	t.Run("tcp run error", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		receiver, runOK := syncServerTestRun("tcp", false, true)
-		assert(runOK).Equals(true)
+		receiver := syncServerTestRun("tcp", false, true)
 		assert(receiver.GetError()).
 			Equals(base.ErrSyncTCPServerServiceAccept.AddDebug(io.EOF.Error()))
 		assert(receiver.GetOnOpenCount()).Equals(0)
@@ -455,8 +453,7 @@ func TestSyncTCPServerService_Run(t *testing.T) {
 
 	t.Run("tcp run ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		receiver, runOK := syncServerTestRun("tcp", false, false)
-		assert(runOK).Equals(true)
+		receiver := syncServerTestRun("tcp", false, false)
 		assert(receiver.GetError()).IsNil()
 		assert(receiver.GetOnOpenCount()).Equals(1)
 		assert(receiver.GetOnCloseCount()).Equals(1)
@@ -466,9 +463,7 @@ func TestSyncTCPServerService_Run(t *testing.T) {
 
 	t.Run("tls run error", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		receiver, runOK := syncServerTestRun("tcp", true, true)
-
-		assert(runOK).Equals(true)
+		receiver := syncServerTestRun("tcp", true, true)
 		assert(receiver.GetError()).
 			Equals(base.ErrSyncTCPServerServiceAccept.AddDebug(io.EOF.Error()))
 		assert(receiver.GetOnOpenCount()).Equals(0)
@@ -479,9 +474,7 @@ func TestSyncTCPServerService_Run(t *testing.T) {
 
 	t.Run("tls run ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		receiver, runOK := syncServerTestRun("tcp", true, false)
-		assert(runOK).Equals(true)
-
+		receiver := syncServerTestRun("tcp", true, false)
 		assert(receiver.GetError()).IsNil()
 		assert(receiver.GetOnOpenCount()).Equals(1)
 		assert(receiver.GetOnCloseCount()).Equals(1)
@@ -567,9 +560,7 @@ func TestSyncWSServerService_Open(t *testing.T) {
 func TestSyncWSServerService_Run(t *testing.T) {
 	t.Run("ws run error", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		receiver, runOK := syncServerTestRun("ws", false, true)
-
-		assert(runOK).Equals(true)
+		receiver := syncServerTestRun("ws", false, true)
 		assert(receiver.GetError()).
 			Equals(base.ErrSyncWSServerServiceServe.AddDebug(io.EOF.Error()))
 		assert(receiver.GetOnOpenCount()).Equals(0)
@@ -580,8 +571,7 @@ func TestSyncWSServerService_Run(t *testing.T) {
 
 	t.Run("ws run ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		receiver, runOK := syncServerTestRun("ws", false, false)
-		assert(runOK).Equals(true)
+		receiver := syncServerTestRun("ws", false, false)
 		assert(receiver.GetError()).IsNil()
 		assert(receiver.GetOnOpenCount()).Equals(1)
 		assert(receiver.GetOnCloseCount()).Equals(1)
@@ -591,9 +581,7 @@ func TestSyncWSServerService_Run(t *testing.T) {
 
 	t.Run("tls run error", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		receiver, runOK := syncServerTestRun("tcp", true, true)
-
-		assert(runOK).Equals(true)
+		receiver := syncServerTestRun("tcp", true, true)
 		assert(receiver.GetError()).
 			Equals(base.ErrSyncTCPServerServiceAccept.AddDebug(io.EOF.Error()))
 		assert(receiver.GetOnOpenCount()).Equals(0)
@@ -604,9 +592,7 @@ func TestSyncWSServerService_Run(t *testing.T) {
 
 	t.Run("tls run ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		receiver, runOK := syncServerTestRun("tcp", true, false)
-		assert(runOK).Equals(true)
-
+		receiver := syncServerTestRun("tcp", true, false)
 		assert(receiver.GetError()).IsNil()
 		assert(receiver.GetOnOpenCount()).Equals(1)
 		assert(receiver.GetOnCloseCount()).Equals(1)

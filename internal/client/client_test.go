@@ -326,10 +326,10 @@ func TestChannel_CheckTime(t *testing.T) {
 
 func TestNewClient(t *testing.T) {
 	type TestORCManager struct {
-		sequence     uint64
-		isWaitChange bool
-		mu           sync.Mutex
-		cond         sync.Cond
+		status      uint32
+		statusCond  sync.Cond
+		runningCond sync.Cond
+		mu          sync.Mutex
 	}
 
 	t.Run("test", func(t *testing.T) {
@@ -374,19 +374,19 @@ func TestNewClient(t *testing.T) {
 			unsafe.Pointer(testAdapter.orcManager),
 		)
 		// orcStatusReady | orcLockBit = 1 | 1 << 2 = 5
-		assert(atomic.LoadUint64(&adapterOrcManager.sequence) % 8).
-			Equals(uint64(5))
-		assert(adapterOrcManager.isWaitChange).Equals(false)
+		assert(atomic.LoadUint32(&adapterOrcManager.status)).
+			Equals(uint32(2))
+		assert(&adapterOrcManager.statusCond).IsNotNil()
+		assert(&adapterOrcManager.runningCond).IsNotNil()
 		assert(&adapterOrcManager.mu).IsNotNil()
-		assert(&adapterOrcManager.cond).IsNotNil()
 		assert(v.preSendHead).IsNil()
 		assert(v.preSendTail).IsNil()
 		assert(len(v.channels)).Equals(32)
 		assert(v.lastPingTimeNS > 0).IsTrue()
 		// orcStatusReady | orcLockBit = 1 | 1 << 2 = 5
-		assert(atomic.LoadUint64(
-			&(*TestORCManager)(unsafe.Pointer(v.orcManager)).sequence,
-		) % 8).Equals(uint64(5))
+		assert(atomic.LoadUint32(
+			&(*TestORCManager)(unsafe.Pointer(v.orcManager)).status,
+		) % 8).Equals(uint32(2))
 
 		// check tryLoop
 		_, err := v.Send(

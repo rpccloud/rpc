@@ -268,7 +268,7 @@ func TestAdapter(t *testing.T) {
 
 		assert(serverAdapter.Open()).IsTrue()
 		go func() {
-			assert(serverAdapter.Run()).IsTrue()
+			serverAdapter.Run()
 			waitCH <- true
 		}()
 
@@ -281,7 +281,7 @@ func TestAdapter(t *testing.T) {
 		)
 		assert(clientAdapter.Open()).IsTrue()
 		go func() {
-			assert(clientAdapter.Run()).IsTrue()
+			clientAdapter.Run()
 			waitCH <- true
 		}()
 

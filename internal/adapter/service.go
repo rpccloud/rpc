@@ -135,13 +135,13 @@ func (p *syncTCPServerService) Open() bool {
 }
 
 // Run ...
-func (p *syncTCPServerService) Run() bool {
-	return p.orcManager.Run(func(isRunning func() bool) bool {
+func (p *syncTCPServerService) Run() {
+	p.orcManager.Run(func(isRunning func() bool) {
 		adapter := p.adapter
 		for isRunning() {
 			conn, e := p.ln.Accept()
 			if e != nil {
-				isCloseErr := !isRunning() &&
+				isCloseErr := p.orcManager.IsClosing() &&
 					strings.HasSuffix(e.Error(), base.ErrNetClosingSuffix)
 
 				if !isCloseErr {
@@ -159,22 +159,18 @@ func (p *syncTCPServerService) Run() bool {
 				runNetConnOnServers(adapter, conn)
 			}
 		}
-
-		return true
 	})
 }
 
 // Close ...
 func (p *syncTCPServerService) Close() bool {
-	return p.orcManager.Close(func() bool {
+	return p.orcManager.Close(func() {
 		if e := p.ln.Close(); e != nil {
 			p.adapter.receiver.OnConnError(
 				nil,
 				base.ErrSyncTCPServerServiceClose.AddDebug(e.Error()),
 			)
 		}
-
-		return true
 	}, func() {
 		p.ln = nil
 	})
@@ -235,8 +231,8 @@ func (p *syncWSServerService) Open() bool {
 }
 
 // Run ...
-func (p *syncWSServerService) Run() bool {
-	return p.orcManager.Run(func(isRunning func() bool) bool {
+func (p *syncWSServerService) Run() {
+	p.orcManager.Run(func(isRunning func() bool) {
 		for isRunning() {
 			startNS := base.TimeNow().UnixNano()
 			if e := p.server.Serve(p.ln); e != nil {
@@ -249,14 +245,12 @@ func (p *syncWSServerService) Run() bool {
 			}
 			base.WaitWhileRunning(startNS, isRunning, time.Second)
 		}
-
-		return true
 	})
 }
 
 // Close ...
 func (p *syncWSServerService) Close() bool {
-	return p.orcManager.Close(func() bool {
+	return p.orcManager.Close(func() {
 		if e := p.server.Close(); e != nil {
 			p.adapter.receiver.OnConnError(
 				nil,
@@ -272,8 +266,6 @@ func (p *syncWSServerService) Close() bool {
 				)
 			}
 		}
-
-		return true
 	}, func() {
 		p.server = nil
 		p.ln = nil
@@ -357,8 +349,8 @@ func (p *syncClientService) Open() bool {
 }
 
 // Run ...
-func (p *syncClientService) Run() bool {
-	return p.orcManager.Run(func(isRunning func() bool) bool {
+func (p *syncClientService) Run() {
+	p.orcManager.Run(func(isRunning func() bool) {
 		for isRunning() {
 			startNS := base.TimeNow().UnixNano()
 
@@ -373,16 +365,13 @@ func (p *syncClientService) Run() bool {
 				3*time.Second,
 			)
 		}
-
-		return true
 	})
 }
 
 // Close ...
 func (p *syncClientService) Close() bool {
-	return p.orcManager.Close(func() bool {
+	return p.orcManager.Close(func() {
 		p.closeConn()
-		return true
 	}, func() {
 		p.conn = nil
 	})

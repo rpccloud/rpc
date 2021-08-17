@@ -292,7 +292,7 @@ func WaitWhileRunning(
 	duration time.Duration,
 ) {
 	for isRunning() {
-		remainNS := TimeNow().UnixNano() - startNS
+		remainNS := startNS + int64(duration) - TimeNow().UnixNano()
 
 		if remainNS <= 0 {
 			return

@@ -94,7 +94,7 @@ func NewRouter(
 	})
 
 	go func() {
-		ret.orcManager.Run(func(isRunning func() bool) bool {
+		ret.orcManager.Run(func(isRunning func() bool) {
 			waitTimerCloseCH := make(chan bool)
 			connProcessing := int64(0)
 
@@ -114,7 +114,7 @@ func NewRouter(
 				conn, e := ret.ln.Accept()
 
 				if e != nil {
-					isCloseErr := !isRunning() &&
+					isCloseErr := ret.orcManager.IsClosing() &&
 						strings.HasSuffix(e.Error(), base.ErrNetClosingSuffix)
 
 					if !isCloseErr {
@@ -150,9 +150,8 @@ func NewRouter(
 				time.Sleep(20 * time.Millisecond)
 			}
 
+			// wait onTimer go routine done
 			<-waitTimerCloseCH
-
-			return true
 		})
 	}()
 
@@ -177,14 +176,12 @@ func (p *Router) SetClusterAddr(clusterAddr string) {
 
 func (p *Router) Close() bool {
 	return p.orcManager.Close(
-		func() bool {
+		func() {
 			if e := p.ln.Close(); e != nil {
 				p.streamHub.OnReceiveStream(rpc.MakeSystemErrorStream(
 					base.ErrRouterConnListen.AddDebug(e.Error()),
 				))
 			}
-
-			return true
 		},
 		func() {
 			p.ln = nil

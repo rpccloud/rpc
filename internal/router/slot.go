@@ -39,7 +39,7 @@ func NewSlot(
 	return ret
 }
 
-func (p *Slot) addSlaveConn(conn net.Conn, initBuffer [32]byte) *base.Error {
+func (p *Slot) AddSlaveConn(conn net.Conn, initBuffer [32]byte) *base.Error {
 	index := binary.LittleEndian.Uint16(initBuffer[4:])
 	if index < numOfChannelPerSlot && conn != nil {
 		channel := p.dataChannels[index]

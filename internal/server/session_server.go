@@ -465,7 +465,7 @@ func (p *SessionServer) Open() {
 	//      if p.orcManager.Close() is called between Open and Run. Run will not
 	// execute at all.
 	// -------------------------------------------------------------------------
-	p.orcManager.Run(func(isRunning func() bool) bool {
+	p.orcManager.Run(func(isRunning func() bool) {
 		waitCH := make(chan bool)
 		waitCount := 0
 
@@ -488,18 +488,15 @@ func (p *SessionServer) Open() {
 			<-waitCH
 			waitCount--
 		}
-
-		return true
 	})
 }
 
 // Close ...
 func (p *SessionServer) Close() {
-	p.orcManager.Close(func() bool {
+	p.orcManager.Close(func() {
 		for _, item := range p.adapters {
 			item.Close()
 		}
-		return true
 	}, func() {
 		p.Lock()
 		defer p.Unlock()
