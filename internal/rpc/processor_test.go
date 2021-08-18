@@ -563,10 +563,10 @@ func TestProcessor_invokeSystemAction(t *testing.T) {
 
 		// for default onMount
 		assert(<-waitCH).Equals(true)
-		assert(processor.invokeSystemAction("onMount", "#.test")).IsTrue()
-		assert(processor.invokeSystemAction("onUpdateConfig", "#.test")).
+		assert(processor.invokeSystemAction("#.test", "$onMount")).IsTrue()
+		assert(processor.invokeSystemAction("#.test", "$onUpdateConfig")).
 			IsTrue()
-		assert(processor.invokeSystemAction("onUnmount", "#.test")).IsTrue()
+		assert(processor.invokeSystemAction("#.test", "$onUnmount")).IsTrue()
 		assert(<-waitCH).Equals(true)
 		assert(<-waitCH).Equals(true)
 		assert(<-waitCH).Equals(true)

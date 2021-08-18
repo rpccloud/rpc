@@ -331,12 +331,12 @@ func (p *Processor) BuildCache(pkgName string, path string) *base.Error {
 
 func (p *Processor) onUpdateConfig() {
 	for key := range p.servicesMap {
-		p.invokeSystemAction("onUpdateConfig", key)
+		p.invokeSystemAction(key, "$onUpdateConfig")
 	}
 }
 
-func (p *Processor) invokeSystemAction(name string, path string) bool {
-	actionPath := path + ":$" + name
+func (p *Processor) invokeSystemAction(path string, name string) bool {
+	actionPath := path + ":" + name
 	if _, ok := p.actionsMap[actionPath]; ok {
 		stream, _ := MakeInternalRequestStream(true, 0, actionPath, "")
 		defer func() {
@@ -410,7 +410,7 @@ func (p *Processor) mountNode(
 			}
 
 			// invoke onMount
-			p.invokeSystemAction("onMount", servicePath)
+			p.invokeSystemAction(servicePath, "$onMount")
 			node.isMount = true
 
 			// mount children
@@ -506,7 +506,7 @@ func (p *Processor) unmount(path string) {
 	for key, v := range p.servicesMap {
 		if strings.HasPrefix(key, path) {
 			if v.isMount {
-				p.invokeSystemAction("onUnmount", key)
+				p.invokeSystemAction(key, "$onUnmount")
 				v.isMount = false
 			}
 		}
