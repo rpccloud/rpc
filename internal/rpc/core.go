@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"reflect"
+	"unsafe"
 
 	"github.com/rpccloud/rpc/internal/base"
 )
@@ -172,6 +173,66 @@ func (p *TestStreamReceiver) WaitStream() *Stream {
 // TotalStreams ...
 func (p *TestStreamReceiver) TotalStreams() int {
 	return len(p.streamCH)
+}
+
+func bytesToNodePathUnsafe(bytes []byte) (ret string) {
+	bytesHeader := (*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	if bytesHeader.Len <= 0 {
+		return ""
+	}
+
+	stringHeader := (*reflect.StringHeader)(unsafe.Pointer(&ret))
+	stringHeader.Data = bytesHeader.Data
+
+	length := bytesHeader.Len
+
+	for idx := 0; idx < length; idx++ {
+		c := bytes[idx]
+		if c >= 128 || c == 58 {
+			stringHeader.Len = idx
+			return
+		}
+	}
+
+	stringHeader.Len = length
+	return
+}
+
+func isUTF8Bytes(bytes []byte) bool {
+	idx := 0
+	length := len(bytes)
+
+	for idx < length {
+		c := bytes[idx]
+		if c < 128 {
+			idx++
+		} else if c < 224 {
+			if (idx+2 > length) ||
+				(bytes[idx+1]&0xC0 != 0x80) {
+				return false
+			}
+			idx += 2
+		} else if c < 240 {
+			if (idx+3 > length) ||
+				(bytes[idx+1]&0xC0 != 0x80) ||
+				(bytes[idx+2]&0xC0 != 0x80) {
+				return false
+			}
+			idx += 3
+		} else if c < 248 {
+			if (idx+4 > length) ||
+				(bytes[idx+1]&0xC0 != 0x80) ||
+				(bytes[idx+2]&0xC0 != 0x80) ||
+				(bytes[idx+3]&0xC0 != 0x80) {
+				return false
+			}
+			idx += 4
+		} else {
+			return false
+		}
+	}
+
+	return idx == length
 }
 
 func getFuncKind(fn reflect.Value) (string, *base.Error) {

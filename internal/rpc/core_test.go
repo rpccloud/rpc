@@ -109,6 +109,40 @@ func TestTestStreamReceiver_TotalStreams(t *testing.T) {
 	})
 }
 
+func TestIsUTF8Bytes(t *testing.T) {
+	t.Run("invalid utf8", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		assert(isUTF8Bytes([]byte{0xC1})).IsFalse()
+		assert(isUTF8Bytes([]byte{0xC1, 0x01})).IsFalse()
+		assert(isUTF8Bytes([]byte{0xE1, 0x80})).IsFalse()
+		assert(isUTF8Bytes([]byte{0xE1, 0x01, 0x81})).IsFalse()
+		assert(isUTF8Bytes([]byte{0xE1, 0x80, 0x01})).IsFalse()
+		assert(isUTF8Bytes([]byte{0xF1, 0x80, 0x80})).IsFalse()
+		assert(isUTF8Bytes([]byte{0xF1, 0x70, 0x80, 0x80})).IsFalse()
+		assert(isUTF8Bytes([]byte{0xF1, 0x80, 0x70, 0x80})).IsFalse()
+		assert(isUTF8Bytes([]byte{0xF1, 0x80, 0x80, 0x70})).IsFalse()
+		assert(isUTF8Bytes([]byte{0xFF, 0x80, 0x80, 0x70})).IsFalse()
+	})
+
+	t.Run("valid utf8", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		assert(isUTF8Bytes(([]byte)("abc"))).IsTrue()
+		assert(isUTF8Bytes(([]byte)("abc！#@¥#%#%#¥%"))).IsTrue()
+		assert(isUTF8Bytes(([]byte)("中文"))).IsTrue()
+		assert(isUTF8Bytes(([]byte)("🀄️文👃d"))).IsTrue()
+		assert(isUTF8Bytes(([]byte)("🀄️文👃"))).IsTrue()
+		assert(isUTF8Bytes(([]byte)(`
+            😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 🥰 😗 😙 😚 ☺️
+            🙂 🤗 🤩 🤔 🤨 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜
+            😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹️ 🙁 😤 😢 😭 😦 😧 😨 😩
+            🤯 😬 😰 😱 🥵 🥶 😳 🤪 😵 😡 😠 🤬 😷 🤒 🤕 🤢 🤡 🥳
+            🥴 🥺 🤥 🤫 🤭 🧐 🤓 😈 👿 👹 👺 💀 👻 👽 🤖 💩 😺 😸
+            😹 😻 😼 😽 👶 👧 🧒 👦 👩 🧑 👨 👵 🧓 👴 👲 👳 👳 🧕
+            🧔 👱 👱 👨 🦰 👩 🦰 👨 🦱 👩 🦱
+        `))).IsTrue()
+	})
+}
+
 func TestGetFuncKind(t *testing.T) {
 	assert := base.NewAssert(t)
 

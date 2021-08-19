@@ -1601,7 +1601,7 @@ func (p *Stream) ReadString() (string, *base.Error) {
 		if p.isSafetyReadNBytesInCurrentFrame(strLen + 2) {
 			if p.readFrame[p.readIndex+strLen+1] == 0 {
 				b := p.readFrame[p.readIndex+1 : p.readIndex+strLen+1]
-				if base.IsUTF8Bytes(b) {
+				if isUTF8Bytes(b) {
 					p.readIndex += strLen + 2
 					return string(b), nil
 				}
@@ -1616,7 +1616,7 @@ func (p *Stream) ReadString() (string, *base.Error) {
 				p.readFrame = *(p.frames[p.readSeg])
 				p.readIndex = copy(b[copyBytes:], p.readFrame)
 			}
-			if p.readFrame[p.readIndex] == 0 && base.IsUTF8Bytes(b) {
+			if p.readFrame[p.readIndex] == 0 && isUTF8Bytes(b) {
 				p.gotoNextReadByteUnsafe()
 				return string(b), nil
 			}
@@ -1645,7 +1645,7 @@ func (p *Stream) ReadString() (string, *base.Error) {
 			if p.isSafetyReadNBytesInCurrentFrame(strLen + 1) {
 				if p.readFrame[p.readIndex+strLen] == 0 {
 					b := p.readFrame[p.readIndex : p.readIndex+strLen]
-					if base.IsUTF8Bytes(b) {
+					if isUTF8Bytes(b) {
 						p.readIndex += strLen + 1
 						return string(b), nil
 					}
@@ -1661,13 +1661,79 @@ func (p *Stream) ReadString() (string, *base.Error) {
 						p.gotoNextReadFrameUnsafe()
 					}
 				}
-				if p.readFrame[p.readIndex] == 0 && base.IsUTF8Bytes(b) {
+				if p.readFrame[p.readIndex] == 0 && isUTF8Bytes(b) {
 					p.gotoNextReadByteUnsafe()
 					return string(b), nil
 				}
 			}
 		}
 		p.SetReadPos(readStart)
+	}
+
+	return "", base.ErrStream
+}
+
+func (p *Stream) GetNodePathUnsafe() (ret string, err *base.Error) {
+	// empty string
+	v := p.readFrame[p.readIndex]
+	if v == 128 {
+		if p.CanRead() {
+			return "", nil
+		}
+	} else if v > 128 && v < 191 {
+		strLen := int(v - 128)
+		if p.isSafetyReadNBytesInCurrentFrame(strLen + 2) {
+			return bytesToNodePathUnsafe(
+				p.readFrame[p.readIndex+1 : p.readIndex+strLen+1],
+			), nil
+		} else if p.hasNBytesToRead(strLen + 2) {
+			b := make([]byte, strLen)
+			copyBytes := copy(b, p.readFrame[p.readIndex+1:])
+			p.readIndex += copyBytes + 1
+			if p.readIndex == streamBlockSize {
+				p.readSeg++
+				p.readFrame = *(p.frames[p.readSeg])
+				p.readIndex = copy(b[copyBytes:], p.readFrame)
+			}
+			return bytesToNodePathUnsafe(b), nil
+		}
+	} else if v == 191 {
+		strLen := -1
+
+		if p.isSafetyReadNBytesInCurrentFrame(5) {
+			b := p.readFrame[p.readIndex:]
+			strLen = int(uint32(b[1])|
+				(uint32(b[2])<<8)|
+				(uint32(b[3])<<16)|
+				(uint32(b[4])<<24)) - 6
+			p.readIndex += 5
+		} else if p.hasNBytesToRead(5) {
+			b := p.readNBytesCrossFrameUnsafe(5)
+			strLen = int(uint32(b[1])|
+				(uint32(b[2])<<8)|
+				(uint32(b[3])<<16)|
+				(uint32(b[4])<<24)) - 6
+		}
+
+		if strLen > 62 {
+			if p.isSafetyReadNBytesInCurrentFrame(strLen + 1) {
+				return bytesToNodePathUnsafe(
+					p.readFrame[p.readIndex : p.readIndex+strLen],
+				), nil
+			} else if p.hasNBytesToRead(strLen + 1) {
+				b := make([]byte, strLen)
+				reads := 0
+				for reads < strLen {
+					readLen := copy(b[reads:], p.readFrame[p.readIndex:])
+					reads += readLen
+					p.readIndex += readLen
+					if p.readIndex == streamBlockSize {
+						p.gotoNextReadFrameUnsafe()
+					}
+				}
+				return bytesToNodePathUnsafe(b), nil
+			}
+		}
 	}
 
 	return "", base.ErrStream
@@ -1686,7 +1752,7 @@ func (p *Stream) readUnsafeString() (ret string, safe bool, err *base.Error) {
 		if p.isSafetyReadNBytesInCurrentFrame(strLen + 2) {
 			if p.readFrame[p.readIndex+strLen+1] == 0 {
 				b := p.readFrame[p.readIndex+1 : p.readIndex+strLen+1]
-				if base.IsUTF8Bytes(b) {
+				if isUTF8Bytes(b) {
 					p.readIndex += strLen + 2
 					return base.BytesToStringUnsafe(b), false, nil
 				}
@@ -1701,7 +1767,7 @@ func (p *Stream) readUnsafeString() (ret string, safe bool, err *base.Error) {
 				p.readFrame = *(p.frames[p.readSeg])
 				p.readIndex = copy(b[copyBytes:], p.readFrame)
 			}
-			if p.readFrame[p.readIndex] == 0 && base.IsUTF8Bytes(b) {
+			if p.readFrame[p.readIndex] == 0 && isUTF8Bytes(b) {
 				p.gotoNextReadByteUnsafe()
 				return base.BytesToStringUnsafe(b), true, nil
 			}
@@ -1730,7 +1796,7 @@ func (p *Stream) readUnsafeString() (ret string, safe bool, err *base.Error) {
 			if p.isSafetyReadNBytesInCurrentFrame(strLen + 1) {
 				if p.readFrame[p.readIndex+strLen] == 0 {
 					b := p.readFrame[p.readIndex : p.readIndex+strLen]
-					if base.IsUTF8Bytes(b) {
+					if isUTF8Bytes(b) {
 						p.readIndex += strLen + 1
 						return base.BytesToStringUnsafe(b), false, nil
 					}
@@ -1746,7 +1812,7 @@ func (p *Stream) readUnsafeString() (ret string, safe bool, err *base.Error) {
 						p.gotoNextReadFrameUnsafe()
 					}
 				}
-				if p.readFrame[p.readIndex] == 0 && base.IsUTF8Bytes(b) {
+				if p.readFrame[p.readIndex] == 0 && isUTF8Bytes(b) {
 					p.gotoNextReadByteUnsafe()
 					return base.BytesToStringUnsafe(b), true, nil
 				}

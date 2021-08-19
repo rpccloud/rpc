@@ -2347,6 +2347,89 @@ func TestStream_ReadString(t *testing.T) {
 	})
 }
 
+func TestStream_GetNodePathUnsafe(t *testing.T) {
+	testCollection := make([][2]interface{}, 0)
+	for _, sLen := range []int{0, 1, 61, 62, 63} {
+		s := base.GetRandString(sLen)
+		testCollection = append(testCollection, [2]interface{}{s, s})
+		testCollection = append(testCollection, [2]interface{}{":" + s, ""})
+		testCollection = append(testCollection, [2]interface{}{s + ":", s})
+		testCollection = append(testCollection, [2]interface{}{
+			s + "😊" + ":", s,
+		})
+		testCollection = append(testCollection, [2]interface{}{
+			"😊" + s + ":", "",
+		})
+	}
+
+	t.Run("test ok", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		testRange := getTestRange(streamPosBody, 3*streamBlockSize, 80, 80, 61)
+		for _, testData := range testCollection {
+			for _, i := range testRange {
+				stream := NewStream()
+				stream.SetWritePos(i)
+				stream.SetReadPos(i)
+				stream.Write(testData[0])
+				assert(stream.GetNodePathUnsafe()).
+					Equals(testData[1], nil)
+				stream.Release()
+			}
+		}
+	})
+
+	t.Run("test readIndex overflow", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		testRange := getTestRange(streamPosBody, 3*streamBlockSize, 80, 80, 61)
+		for _, testData := range testCollection {
+			for _, i := range testRange {
+				stream := NewStream()
+				stream.SetWritePos(i)
+				stream.SetReadPos(i)
+				stream.Write(testData[0])
+				writePos := stream.GetWritePos()
+				for idx := i; idx < writePos-1; idx++ {
+					stream.SetReadPos(i)
+					stream.SetWritePos(idx)
+					assert(stream.GetNodePathUnsafe()).
+						Equals("", base.ErrStream)
+				}
+				stream.Release()
+			}
+		}
+	})
+
+	t.Run("test type not match", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		testRange := getTestRange(streamPosBody, 3*streamBlockSize, 80, 80, 61)
+		for _, i := range testRange {
+			stream := NewStream()
+			stream.SetWritePos(i)
+			stream.SetReadPos(i)
+			stream.PutBytes([]byte{13})
+			assert(stream.GetNodePathUnsafe()).
+				Equals("", base.ErrStream)
+			stream.Release()
+		}
+	})
+
+	t.Run("read string length error", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		stream := NewStream()
+		stream.PutBytes([]byte{
+			0xBF, 0x2F, 0x00, 0x00, 0x00, 0x61, 0x61, 0x61, 0x61, 0x61,
+			0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61,
+			0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61,
+			0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61,
+			0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61,
+			0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61,
+			0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x61, 0x00,
+		})
+		assert(stream.GetNodePathUnsafe()).Equals("", base.ErrStream)
+		stream.Release()
+	})
+}
+
 func TestStream_ReadUnsafeString(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)

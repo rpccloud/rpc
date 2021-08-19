@@ -144,40 +144,6 @@ func TestBytesToStringUnsafe(t *testing.T) {
 	})
 }
 
-func TestIsUTF8Bytes(t *testing.T) {
-	t.Run("invalid utf8", func(t *testing.T) {
-		assert := NewAssert(t)
-		assert(IsUTF8Bytes([]byte{0xC1})).IsFalse()
-		assert(IsUTF8Bytes([]byte{0xC1, 0x01})).IsFalse()
-		assert(IsUTF8Bytes([]byte{0xE1, 0x80})).IsFalse()
-		assert(IsUTF8Bytes([]byte{0xE1, 0x01, 0x81})).IsFalse()
-		assert(IsUTF8Bytes([]byte{0xE1, 0x80, 0x01})).IsFalse()
-		assert(IsUTF8Bytes([]byte{0xF1, 0x80, 0x80})).IsFalse()
-		assert(IsUTF8Bytes([]byte{0xF1, 0x70, 0x80, 0x80})).IsFalse()
-		assert(IsUTF8Bytes([]byte{0xF1, 0x80, 0x70, 0x80})).IsFalse()
-		assert(IsUTF8Bytes([]byte{0xF1, 0x80, 0x80, 0x70})).IsFalse()
-		assert(IsUTF8Bytes([]byte{0xFF, 0x80, 0x80, 0x70})).IsFalse()
-	})
-
-	t.Run("valid utf8", func(t *testing.T) {
-		assert := NewAssert(t)
-		assert(IsUTF8Bytes(([]byte)("abc"))).IsTrue()
-		assert(IsUTF8Bytes(([]byte)("abc！#@¥#%#%#¥%"))).IsTrue()
-		assert(IsUTF8Bytes(([]byte)("中文"))).IsTrue()
-		assert(IsUTF8Bytes(([]byte)("🀄️文👃d"))).IsTrue()
-		assert(IsUTF8Bytes(([]byte)("🀄️文👃"))).IsTrue()
-		assert(IsUTF8Bytes(([]byte)(`
-            😀 😁 😂 🤣 😃 😄 😅 😆 😉 😊 😋 😎 😍 😘 🥰 😗 😙 😚 ☺️
-            🙂 🤗 🤩 🤔 🤨 🙄 😏 😣 😥 😮 🤐 😯 😪 😫 😴 😌 😛 😜
-            😝 🤤 😒 😓 😔 😕 🙃 🤑 😲 ☹️ 🙁 😤 😢 😭 😦 😧 😨 😩
-            🤯 😬 😰 😱 🥵 🥶 😳 🤪 😵 😡 😠 🤬 😷 🤒 🤕 🤢 🤡 🥳
-            🥴 🥺 🤥 🤫 🤭 🧐 🤓 😈 👿 👹 👺 💀 👻 👽 🤖 💩 😺 😸
-            😹 😻 😼 😽 👶 👧 🧒 👦 👩 🧑 👨 👵 🧓 👴 👲 👳 👳 🧕
-            🧔 👱 👱 👨 🦰 👩 🦰 👨 🦱 👩 🦱
-        `))).IsTrue()
-	})
-}
-
 func TestGetSeed(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
