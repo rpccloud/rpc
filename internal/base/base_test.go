@@ -291,13 +291,13 @@ func TestWaitWhenRunning(t *testing.T) {
 					startTime.UnixNano(),
 					func() bool {
 						count++
-						return count < 3
+						return count < 2
 					},
 					500*time.Millisecond,
 				)
 				interval := TimeNow().Sub(startTime)
-				assert(interval >= 40*time.Millisecond).IsTrue()
-				assert(interval < 300*time.Millisecond).IsTrue()
+				assert(interval >= 10*time.Millisecond).IsTrue()
+				assert(interval < 400*time.Millisecond).IsTrue()
 				waitCH <- true
 			}()
 		}
