@@ -285,10 +285,10 @@ func TestWaitWhenRunning(t *testing.T) {
 		for i := 0; i < 100; i++ {
 			go func() {
 				assert := NewAssert(t)
-				startTime := TimeNow()
 				count := 0
+				startTime := TimeNow()
 				WaitWhileRunning(
-					TimeNow().UnixNano(),
+					startTime.UnixNano(),
 					func() bool {
 						count++
 						return count < 3
