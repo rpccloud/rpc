@@ -127,6 +127,22 @@ func TestMaxInt(t *testing.T) {
 	})
 }
 
+func TestMinInt64(t *testing.T) {
+	t.Run("test", func(t *testing.T) {
+		assert := NewAssert(t)
+		assert(MinInt64(1, 2)).Equals(int64(1))
+		assert(MinInt64(2, 1)).Equals(int64(1))
+	})
+}
+
+func TestMaxInt64(t *testing.T) {
+	t.Run("test", func(t *testing.T) {
+		assert := NewAssert(t)
+		assert(MaxInt64(1, 2)).Equals(int64(2))
+		assert(MaxInt64(2, 1)).Equals(int64(2))
+	})
+}
+
 func TestStringToBytesUnsafe(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)

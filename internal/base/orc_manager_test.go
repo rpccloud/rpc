@@ -150,6 +150,24 @@ func TestORCManager_IsRunning(t *testing.T) {
 	})
 }
 
+func TestORCManager_IsCloseing(t *testing.T) {
+	t.Run("test", func(t *testing.T) {
+		assert := NewAssert(t)
+		o := NewORCManager()
+
+		o.setStatus(orcStatusClosing)
+		assert(o.IsClosing()).IsTrue()
+
+		for _, status := range []uint32{
+			orcStatusNone, orcStatusOpened, orcStatusRunning,
+			orcStatusDone, orcStatusClosed,
+		} {
+			o.setStatus(status)
+			assert(o.IsClosing()).IsFalse()
+		}
+	})
+}
+
 func TestORCManager_IsClosed(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)

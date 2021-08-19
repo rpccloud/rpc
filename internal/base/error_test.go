@@ -430,10 +430,9 @@ func TestError_getErrorLevelString(t *testing.T) {
 }
 
 func TestError_Error(t *testing.T) {
-	num := ErrorIndex(math.MaxUint16)
-
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
+		num := ErrorIndex(math.MaxUint16)
 		v1 := DefineConfigError(num, ErrorLevelWarn, "msg")
 		defer func() {
 			errorDefineMutex.Lock()
@@ -442,5 +441,31 @@ func TestError_Error(t *testing.T) {
 		}()
 		v2 := v1.AddDebug("dbg")
 		assert(v2.Error()).Equals(fmt.Sprintf("ConfigWarn[%d]: msg\ndbg", num))
+	})
+}
+
+func TestError_ReportString(t *testing.T) {
+	t.Run("test", func(t *testing.T) {
+		assert := NewAssert(t)
+		num := ErrorIndex(math.MaxUint16)
+		v1 := DefineConfigError(num, ErrorLevelWarn, "msg")
+		defer func() {
+			errorDefineMutex.Lock()
+			delete(errorDefineMap, num)
+			errorDefineMutex.Unlock()
+		}()
+		timeHeaderLen := len(TimeNowISOString())
+		assert(v1.ReportString(0, 0)[timeHeaderLen:]).Equals(
+			" ConfigWarn[65535]: msg",
+		)
+		assert(v1.ReportString(1, 0)[timeHeaderLen:]).Equals(
+			" <machineID:1> ConfigWarn[65535]: msg",
+		)
+		assert(v1.ReportString(0, 1)[timeHeaderLen:]).Equals(
+			" <sessionID:1> ConfigWarn[65535]: msg",
+		)
+		assert(v1.ReportString(1, 1)[timeHeaderLen:]).Equals(
+			" <machineID:1> <sessionID:1> ConfigWarn[65535]: msg",
+		)
 	})
 }

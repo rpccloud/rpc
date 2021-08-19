@@ -217,7 +217,7 @@ func (p *Error) ReportString(machineID uint64, sessionID uint64) string {
 	machineString := ""
 	if machineID != 0 {
 		machineString = ConcatString(
-			"<target:",
+			"<machineID:",
 			strconv.FormatUint(machineID, 10),
 			"> ",
 		)
@@ -225,7 +225,7 @@ func (p *Error) ReportString(machineID uint64, sessionID uint64) string {
 	sessionString := ""
 	if sessionID != 0 {
 		sessionString = ConcatString(
-			"<session:",
+			"<sessionID:",
 			strconv.FormatUint(sessionID, 10),
 			"> ",
 		)
