@@ -2,7 +2,6 @@
 package rpc
 
 import (
-	"log"
 	"math"
 	"reflect"
 	"unsafe"
@@ -96,46 +95,6 @@ func (p *StreamGenerator) OnBytes(b []byte) *base.Error {
 // IStreamReceiver ...
 type IStreamReceiver interface {
 	OnReceiveStream(stream *Stream)
-}
-
-// LogToScreenErrorStreamReceiver ...
-type LogToScreenErrorStreamReceiver struct {
-	prefix string
-}
-
-// NewLogToScreenErrorStreamReceiver ...
-func NewLogToScreenErrorStreamReceiver(
-	prefix string,
-) *LogToScreenErrorStreamReceiver {
-	return &LogToScreenErrorStreamReceiver{prefix: prefix}
-}
-
-// OnReceiveStream ...
-func (p *LogToScreenErrorStreamReceiver) OnReceiveStream(stream *Stream) {
-	if stream != nil {
-		switch stream.GetKind() {
-		case StreamKindRPCResponseError:
-			fallthrough
-		case StreamKindSystemErrorReport:
-			if _, err := ParseResponseStream(stream); err != nil {
-				gatewayID := stream.GetGatewayID()
-				sessionID := stream.GetSessionID()
-				if gatewayID > 0 || sessionID > 0 {
-					log.Printf(
-						"[%s Error <%d-%d>]: %s",
-						p.prefix,
-						stream.GetGatewayID(),
-						stream.GetSessionID(),
-						err.Error(),
-					)
-				} else {
-					log.Printf("[%s Error]: %s", p.prefix, err.Error())
-				}
-			}
-		}
-
-		stream.Release()
-	}
 }
 
 // TestStreamReceiver ...

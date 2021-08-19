@@ -2,58 +2,11 @@ package rpc
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/rpccloud/rpc/internal/base"
 )
-
-func TestNewLogToScreenErrorStreamReceiver(t *testing.T) {
-	t.Run("test", func(t *testing.T) {
-		assert := base.NewAssert(t)
-		assert(NewLogToScreenErrorStreamReceiver("Server")).
-			Equals(&LogToScreenErrorStreamReceiver{prefix: "Server"})
-	})
-}
-
-func TestLogToScreenErrorStreamReceiver_OnReceiveStream(t *testing.T) {
-	t.Run("test ok gatewayID == 0 && sessionID == 0", func(t *testing.T) {
-		assert := base.NewAssert(t)
-		v := NewLogToScreenErrorStreamReceiver("Server")
-		stream := NewStream()
-		stream.SetKind(StreamKindRPCResponseError)
-		stream.SetGatewayID(0)
-		stream.SetSessionID(0)
-		stream.WriteUint64(uint64(base.ErrProcessorIsNotRunning.GetCode()))
-		stream.WriteString(base.ErrProcessorIsNotRunning.GetMessage())
-		assert(strings.HasSuffix(
-			base.RunWithLogOutput(func() {
-				v.OnReceiveStream(stream)
-			}),
-			"[Server Error]: KernelFatal[264]: "+
-				"processor is not running\n",
-		)).IsTrue()
-	})
-
-	t.Run("test ok gatewayID > 0", func(t *testing.T) {
-		assert := base.NewAssert(t)
-		v := NewLogToScreenErrorStreamReceiver("Server")
-		stream := NewStream()
-		stream.SetKind(StreamKindRPCResponseError)
-		stream.SetGatewayID(1234)
-		stream.SetSessionID(5678)
-		stream.WriteUint64(uint64(base.ErrProcessorIsNotRunning.GetCode()))
-		stream.WriteString(base.ErrProcessorIsNotRunning.GetMessage())
-		assert(strings.HasSuffix(
-			base.RunWithLogOutput(func() {
-				v.OnReceiveStream(stream)
-			}),
-			"[Server Error <1234-5678>]: KernelFatal[264]: "+
-				"processor is not running\n",
-		)).IsTrue()
-	})
-}
 
 func TestNewTestStreamReceiver(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
@@ -106,6 +59,23 @@ func TestTestStreamReceiver_TotalStreams(t *testing.T) {
 		assert(v.TotalStreams()).Equals(0)
 		v.streamCH <- NewStream()
 		assert(v.TotalStreams()).Equals(1)
+	})
+}
+
+func TestBytesToNodePathUnsafe(t *testing.T) {
+	t.Run("test ok", func(t *testing.T) {
+		assert := base.NewAssert(t)
+		assert(bytesToNodePathUnsafe([]byte{})).Equals("")
+		assert(bytesToNodePathUnsafe([]byte{97, 98, 99})).Equals("abc")
+		assert(bytesToNodePathUnsafe(
+			[]byte{97, 98, 99, 58, 99, 100},
+		)).Equals("abc")
+		assert(bytesToNodePathUnsafe(
+			[]byte{197, 98, 99, 58, 99, 100},
+		)).Equals("")
+		assert(bytesToNodePathUnsafe(
+			[]byte{97, 98, 99, 58, 197, 100},
+		)).Equals("abc")
 	})
 }
 
