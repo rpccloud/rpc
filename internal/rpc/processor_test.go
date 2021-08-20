@@ -42,7 +42,12 @@ func testProcessorMountError(services []*ServiceMeta) *base.Error {
 		services,
 		streamReceiver,
 	)
-	defer processor.Close()
+
+	defer func() {
+		if processor != nil {
+			processor.Close()
+		}
+	}()
 
 	if stream := streamReceiver.GetStream(); stream != nil {
 		_, err := ParseResponseStream(stream)
