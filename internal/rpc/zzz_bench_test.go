@@ -63,8 +63,8 @@ func testWithRPCBenchmark(
 
 func BenchmarkRPC_basic(b *testing.B) {
 	testWithRPCBenchmark(
-		8192*24,
-		2048,
+		8192*8,
+		1024,
 		&testFuncCache{},
 		func(rt Runtime) Return {
 			return rt.Reply(true)
@@ -77,8 +77,8 @@ func BenchmarkRPC_basic(b *testing.B) {
 
 func BenchmarkRPC_string(b *testing.B) {
 	testWithRPCBenchmark(
-		8192*24,
-		2048,
+		8192*8,
+		1024,
 		&testFuncCache{},
 		func(rt Runtime, rtName RTValue) Return {
 			if name, err := rtName.ToString(); err != nil {
@@ -98,8 +98,8 @@ func BenchmarkRPC_string(b *testing.B) {
 
 func BenchmarkRPC_array(b *testing.B) {
 	testWithRPCBenchmark(
-		8192*24,
-		2048,
+		8192*8,
+		1024,
 		&testFuncCache{},
 		func(rt Runtime, rtArray RTArray) Return {
 			if rtArray.Size() != 3 {
@@ -125,8 +125,8 @@ func BenchmarkRPC_array(b *testing.B) {
 
 func BenchmarkRPC_map(b *testing.B) {
 	testWithRPCBenchmark(
-		8192*24,
-		2048,
+		8192*8,
+		1024,
 		&testFuncCache{},
 		func(rt Runtime, rtMap RTMap) Return {
 			if rtMap.Size() != 2 {
@@ -150,8 +150,8 @@ func BenchmarkRPC_map(b *testing.B) {
 
 func BenchmarkRPC_call_reply_rtArray(b *testing.B) {
 	testWithRPCBenchmark(
-		8192*24,
-		2048,
+		8192*8,
+		1024,
 		&testFuncCache{},
 		func(rt Runtime, v int64) Return {
 			if v == 0 {
@@ -172,8 +172,8 @@ func BenchmarkRPC_call_reply_rtArray(b *testing.B) {
 
 func BenchmarkRPC_call_reply_rtMap(b *testing.B) {
 	testWithRPCBenchmark(
-		8192*24,
-		2048,
+		8192*8,
+		1024,
 		&testFuncCache{},
 		func(rt Runtime, v int64) Return {
 			if v == 0 {
@@ -194,8 +194,8 @@ func BenchmarkRPC_call_reply_rtMap(b *testing.B) {
 
 func BenchmarkRPC_call_reply_rtValue(b *testing.B) {
 	testWithRPCBenchmark(
-		8192*24,
-		2048,
+		8192*8,
+		1024,
 		&testFuncCache{},
 		func(rt Runtime, v int64, rtValue RTValue) Return {
 			if v == 0 {
@@ -217,8 +217,8 @@ func BenchmarkRPC_call_reply_rtValue(b *testing.B) {
 
 func BenchmarkRPC_getServiceData(b *testing.B) {
 	testWithRPCBenchmark(
-		8192*24,
-		2048,
+		8192*8,
+		1024,
 		&testFuncCache{},
 		func(rt Runtime) Return {
 			if v, ok := rt.GetServiceConfig("dbName"); !ok || v != "mysql" {
