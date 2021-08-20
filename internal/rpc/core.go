@@ -57,36 +57,29 @@ func (p *StreamGenerator) OnBytes(b []byte) *base.Error {
 	}
 
 	// fill body
-	if byteLen := len(b); byteLen >= 0 {
-		streamLength := int(p.stream.GetLength())
-		remains := streamLength - p.stream.GetWritePos()
+	byteLen := len(b)
+	streamLength := int(p.stream.GetLength())
+	remains := streamLength - p.stream.GetWritePos()
 
-		if remains < 0 {
+	if remains < 0 {
+		return base.ErrStream
+	}
+
+	writeBuf := b[:base.MinInt(byteLen, remains)]
+	p.stream.PutBytes(writeBuf)
+	streamPos := p.stream.GetWritePos()
+
+	if streamPos == streamLength {
+		if p.stream.CheckStream() {
+			p.streamReceiver.OnReceiveStream(p.stream)
+			p.stream = nil
+		} else {
 			return base.ErrStream
 		}
+	}
 
-		writeBuf := b[:base.MinInt(byteLen, remains)]
-		p.stream.PutBytes(writeBuf)
-		streamPos := p.stream.GetWritePos()
-
-		if streamPos > streamLength {
-			return base.ErrStream
-		}
-
-		if streamPos == streamLength {
-			if p.stream.CheckStream() {
-				p.streamReceiver.OnReceiveStream(p.stream)
-				p.stream = nil
-			} else {
-				return base.ErrStream
-			}
-		}
-
-		if byteLen > len(writeBuf) {
-			return p.OnBytes(b[len(writeBuf):])
-		}
-
-		return nil
+	if byteLen > len(writeBuf) {
+		return p.OnBytes(b[len(writeBuf):])
 	}
 
 	return nil
