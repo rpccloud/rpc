@@ -104,12 +104,14 @@ func (p *ORCManager) Run(onRuns ...func(isRunning func() bool)) {
 	if p.getStatus() == orcStatusOpened {
 		p.setStatus(orcStatusRunning)
 		numOfRunning := int64(len(onRuns))
-		ptrNumOfRunning := &numOfRunning
 
 		for i := 0; i < len(onRuns); i++ {
 			go func(onRun func(isRunning func() bool)) {
 				defer func() {
-					p.decRuningCount(ptrNumOfRunning)
+					p.mu.Lock()
+					defer p.mu.Unlock()
+
+					p.decRuningCount(&numOfRunning)
 				}()
 
 				if onRun != nil {
