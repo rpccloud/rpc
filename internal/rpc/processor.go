@@ -14,7 +14,7 @@ import (
 
 const (
 	rootName               = "#"
-	freeGroups             = 1024
+	freeGroups             = 256
 	processorStatusClosed  = 0
 	processorStatusRunning = 1
 )

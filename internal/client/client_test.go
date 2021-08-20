@@ -81,7 +81,7 @@ func getTestServer() *server.Server {
 		})
 
 	rpcServer := server.NewServer(
-		server.GetDefaultServerConfig().SetNumOfThreads(1024),
+		server.GetDefaultServerConfig().SetNumOfThreads(256),
 	).ListenWithDebug("ws", "0.0.0.0:8765", nil)
 	rpcServer.AddService("user", userService, nil)
 
@@ -733,7 +733,7 @@ func TestClient_Send(t *testing.T) {
 		defer rpcClient.Close()
 
 		waitCH := make(chan []interface{})
-		for i := 0; i < 300; i++ {
+		for i := 0; i < 100; i++ {
 			go func() {
 				v, err := rpcClient.Send(
 					6*time.Second,
@@ -744,7 +744,7 @@ func TestClient_Send(t *testing.T) {
 			}()
 		}
 
-		for i := 0; i < 300; i++ {
+		for i := 0; i < 100; i++ {
 			assert(<-waitCH...).Equals("hello kitty", nil)
 		}
 	})

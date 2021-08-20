@@ -106,7 +106,7 @@ func TestProcessor(t *testing.T) {
 		assert(actionNameRegex.MatchString("sayHello")).IsTrue()
 		assert(actionNameRegex.MatchString("$sayHello")).IsFalse()
 		assert(rootName).Equals("#")
-		assert(freeGroups).Equals(1024)
+		assert(freeGroups).Equals(256)
 		assert(processorStatusClosed).Equals(0)
 		assert(processorStatusRunning).Equals(1)
 	})
@@ -117,7 +117,7 @@ func TestNewProcessor(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(base.RunWithCatchPanic(func() {
 			NewProcessor(
-				1024, 16, 16, 2048, nil, 5*time.Second, nil, nil,
+				256, 16, 16, 2048, nil, 5*time.Second, nil, nil,
 			)
 		})).Equals("streamReceiver is nil")
 	})
@@ -136,7 +136,7 @@ func TestNewProcessor(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := NewTestStreamReceiver()
 		assert(NewProcessor(
-			1024, 0, 16, 2048, nil, 5*time.Second, nil, streamReceiver,
+			256, 0, 16, 2048, nil, 5*time.Second, nil, streamReceiver,
 		)).Equals(nil)
 		assert(ParseResponseStream(streamReceiver.GetStream())).
 			Equals(nil, base.ErrMaxNodeDepthIsWrong)
@@ -146,7 +146,7 @@ func TestNewProcessor(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := NewTestStreamReceiver()
 		assert(NewProcessor(
-			1024, 16, 0, 2048, nil, 5*time.Second, nil, streamReceiver,
+			256, 16, 0, 2048, nil, 5*time.Second, nil, streamReceiver,
 		)).Equals(nil)
 		assert(ParseResponseStream(streamReceiver.GetStream())).
 			Equals(nil, base.ErrProcessorMaxCallDepthIsWrong)
@@ -156,7 +156,7 @@ func TestNewProcessor(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := NewTestStreamReceiver()
 		assert(NewProcessor(
-			1024, 16, 16, 2048, nil, 5*time.Second,
+			256, 16, 16, 2048, nil, 5*time.Second,
 			[]*ServiceMeta{nil}, streamReceiver,
 		)).Equals(nil)
 		assert(ParseResponseStream(streamReceiver.GetStream())).
@@ -300,7 +300,7 @@ func TestProcessor_Close(t *testing.T) {
 			waitCH := make(chan bool)
 			streamReceiver := NewTestStreamReceiver()
 			processor := NewProcessor(
-				1024,
+				256,
 				2,
 				3,
 				2048,
@@ -363,7 +363,7 @@ func TestProcessor_PutStream(t *testing.T) {
 	t.Run("processor is closed", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		processor := NewProcessor(
-			1024,
+			256,
 			2,
 			3,
 			2048,
@@ -384,7 +384,7 @@ func TestProcessor_PutStream(t *testing.T) {
 		testCount := 10240
 		streamReceiver := NewTestStreamReceiver()
 		processor := NewProcessor(
-			freeGroups*2,
+			256,
 			2,
 			3,
 			2048,
@@ -410,7 +410,7 @@ func TestProcessor_PutStream(t *testing.T) {
 		for i := 0; i < len(processor.freeCHArray); i++ {
 			freeSum += len(processor.freeCHArray[i])
 		}
-		assert(freeSum).Equals(freeGroups * 2)
+		assert(freeSum).Equals(256)
 	})
 }
 
