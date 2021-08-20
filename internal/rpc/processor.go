@@ -265,9 +265,11 @@ func (p *Processor) Close() bool {
 		p.unmount("#")
 		p.systemThread.Close()
 
-		for _, freeCH := range p.freeCHArray {
-			close(freeCH)
-		}
+		// it's OK to leave a Go channel open forever and never close it.
+		// When the channel is no longer used, it will be garbage collected.
+		// for _, freeCH := range p.freeCHArray {
+		// 	close(freeCH)
+		// }
 
 		if p.panicSubscription != nil {
 			p.panicSubscription.Close()
