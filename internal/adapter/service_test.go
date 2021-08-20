@@ -635,25 +635,25 @@ func TestSyncWSServerService_Close(t *testing.T) {
 func TestSyncClientService(t *testing.T) {
 	type testItem struct {
 		network string
+		addr    string
 		isTLS   bool
 	}
-	addr := "localhost:65437"
 
 	t.Run("tcp4 ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 
 		for _, it := range []testItem{
-			{network: "tcp", isTLS: false},
-			{network: "tcp", isTLS: true},
-			{network: "tcp4", isTLS: false},
-			{network: "tcp4", isTLS: true},
-			{network: "tcp6", isTLS: false},
-			{network: "tcp6", isTLS: true},
-			{network: "ws", isTLS: false},
-			{network: "wss", isTLS: true},
+			{network: "tcp", addr: "127.0.0.1:65437", isTLS: false},
+			{network: "tcp", addr: "127.0.0.1:65437", isTLS: true},
+			{network: "tcp4", addr: "127.0.0.1:65437", isTLS: false},
+			{network: "tcp4", addr: "127.0.0.1:65437", isTLS: true},
+			{network: "tcp6", addr: "[::1]:65437", isTLS: false},
+			{network: "tcp6", addr: "[::1]:65437", isTLS: true},
+			{network: "ws", addr: "127.0.0.1:65437", isTLS: false},
+			{network: "wss", addr: "127.0.0.1:65437", isTLS: true},
 		} {
 			receiver, client := syncClientTest(
-				it.isTLS, it.network, it.network, addr,
+				it.isTLS, it.network, it.network, it.addr,
 			)
 			assert(receiver.GetOnOpenCount()).Equals(1)
 			assert(receiver.GetOnCloseCount()).Equals(1)
@@ -701,7 +701,7 @@ func TestSyncClientService(t *testing.T) {
 			{network: "err", isTLS: true},
 		} {
 			receiver, client := syncClientTest(
-				it.isTLS, "tcp", it.network, addr,
+				it.isTLS, "tcp", it.network, "",
 			)
 
 			assert(receiver.GetError()).
