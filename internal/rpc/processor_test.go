@@ -32,7 +32,7 @@ func init() {
 
 func testProcessorMountError(services []*ServiceMeta) *base.Error {
 	streamReceiver := NewTestStreamReceiver()
-	NewProcessor(
+	processor := NewProcessor(
 		freeGroups,
 		2,
 		3,
@@ -42,6 +42,7 @@ func testProcessorMountError(services []*ServiceMeta) *base.Error {
 		services,
 		streamReceiver,
 	)
+	defer processor.Close()
 
 	if stream := streamReceiver.GetStream(); stream != nil {
 		_, err := ParseResponseStream(stream)
