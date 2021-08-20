@@ -87,12 +87,12 @@ func TestORCManager_decRuningCount(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
 		o := NewORCManager()
-		v := int64(10000)
+		v := int64(1000)
 
 		waitCH := make(chan bool, 10)
 		for i := 0; i < 10; i++ {
 			go func() {
-				for j := 0; j < 1000; j++ {
+				for j := 0; j < 100; j++ {
 					o.decRuningCount(&v)
 				}
 				waitCH <- true
@@ -111,15 +111,20 @@ func TestORCManager_waitForRunningCountChange(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
 		o := NewORCManager()
-		v := int64(10000)
+		v := int64(1000)
 
 		o.mu.Lock()
 		defer o.mu.Unlock()
 
 		for i := 0; i < 10; i++ {
 			go func() {
-				for j := 0; j < 1000; j++ {
-					o.decRuningCount(&v)
+				for j := 0; j < 100; j++ {
+					func() {
+						o.mu.Lock()
+						defer o.mu.Unlock()
+						o.decRuningCount(&v)
+					}()
+					time.Sleep(time.Millisecond)
 				}
 			}()
 		}
