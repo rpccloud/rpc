@@ -23,7 +23,8 @@ func NewLogger(isLogToScreen bool, outFile string) (*Logger, *Error) {
 
 		// make sure the dir of outFile is exist
 		dirName := filepath.Dir(outFile)
-		if e := os.Mkdir(dirName, os.ModeDir); e != nil {
+
+		if e := os.Mkdir(dirName, os.ModeDir|0755); e != nil {
 			if !os.IsExist(e) {
 				return nil, e
 			}
