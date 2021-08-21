@@ -29,12 +29,7 @@ func NewLogger(isLogToScreen bool, outFile string) (*Logger, *Error) {
 				return nil, e
 			}
 
-			// check dir
-			info, e := os.Stat(dirName)
-			if e != nil {
-				return nil, e
-			}
-			if !info.IsDir() {
+			if info, e := os.Stat(dirName); e != nil || !info.IsDir() {
 				return nil, fmt.Errorf("path %s is not a directory", dirName)
 			}
 		}

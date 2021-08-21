@@ -42,6 +42,18 @@ func TestNewLogger(t *testing.T) {
 		assert(e.GetCode()).Equals(ErrLogOpenFile.GetCode())
 	})
 
+	t.Run("create dir error", func(t *testing.T) {
+		assert := NewAssert(t)
+		f, _ := os.Create("tmp")
+		f.Close()
+		defer os.Remove("tmp")
+		v, e := NewLogger(false, "./tmp/test.log")
+		assert(v.file).IsNil()
+		assert(e).Equals(
+			ErrLogOpenFile.AddDebug("path tmp is not a directory"),
+		)
+	})
+
 	t.Run("file is empty", func(t *testing.T) {
 		assert := NewAssert(t)
 		assert(NewLogger(false, "")).Equals(&Logger{
