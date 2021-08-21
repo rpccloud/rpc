@@ -90,14 +90,15 @@ func TestStreamHub_OnReceiveStream(t *testing.T) {
 				sessionCH <- sessionID
 			},
 		}
-		v := NewStreamHub(true, "./tmp/test.log", base.ErrorLogAll, callback)
+		v := NewStreamHub(true, "./tmp01/test.log", base.ErrorLogAll, callback)
 		defer func() {
-			os.RemoveAll("./tmp")
+			v.Close()
+			os.RemoveAll("./tmp01")
 		}()
 		stream := MakeSystemErrorStream(base.ErrStream)
 		stream.SetSessionID(17)
 		v.OnReceiveStream(stream)
-		logStr, _ := base.ReadFromFile("./tmp/test.log")
+		logStr, _ := base.ReadFromFile("./tmp01/test.log")
 		assert(strings.HasSuffix(
 			logStr,
 			" <sessionID:17> SecurityWarn[1]: stream error",
@@ -116,14 +117,15 @@ func TestStreamHub_OnReceiveStream(t *testing.T) {
 				sessionCH <- sessionID
 			},
 		}
-		v := NewStreamHub(true, "./tmp/test.log", 0, callback)
+		v := NewStreamHub(true, "./tmp02/test.log", 0, callback)
 		defer func() {
-			os.RemoveAll("./tmp")
+			v.Close()
+			os.RemoveAll("./tmp02")
 		}()
 		stream := MakeSystemErrorStream(base.ErrStream)
 		stream.SetSessionID(17)
 		v.OnReceiveStream(stream)
-		assert(base.ReadFromFile("./tmp/test.log")).Equals("", nil)
+		assert(base.ReadFromFile("./tmp02/test.log")).Equals("", nil)
 		assert(len(errCH)).Equals(0)
 	})
 }
@@ -149,9 +151,9 @@ func TestStreamHub_Close(t *testing.T) {
 				errCH <- err
 			},
 		}
-		v := NewStreamHub(true, "./tmp/test.log", base.ErrorLogAll, callback)
+		v := NewStreamHub(true, "./tmp03/test.log", base.ErrorLogAll, callback)
 		defer func() {
-			os.RemoveAll("./tmp")
+			os.RemoveAll("./tmp03")
 		}()
 
 		filePtr := (**os.File)(getFieldPointer(v.logger, "file"))
