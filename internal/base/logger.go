@@ -1,7 +1,9 @@
 package base
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
@@ -17,6 +19,23 @@ func NewLogger(isLogToScreen bool, outFile string) (*Logger, *Error) {
 	file, e := func() (*os.File, error) {
 		if outFile == "" {
 			return nil, nil
+		}
+
+		// make sure the dir of outFile is exist
+		dirName := filepath.Dir(outFile)
+		if e := os.Mkdir(dirName, os.ModeDir); e != nil {
+			if !os.IsExist(e) {
+				return nil, e
+			}
+
+			// check dir
+			info, e := os.Stat(dirName)
+			if e != nil {
+				return nil, e
+			}
+			if !info.IsDir() {
+				return nil, fmt.Errorf("path %s is not a directory", dirName)
+			}
 		}
 
 		return os.OpenFile(outFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
