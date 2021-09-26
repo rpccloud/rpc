@@ -20,7 +20,7 @@ type SyncConn struct {
 	next      IConn
 	rBuf      []byte
 	wBuf      []byte
-	sync.Mutex
+	mu        sync.Mutex
 }
 
 // NewServerSyncConn ...
@@ -69,8 +69,8 @@ func (p *SyncConn) OnError(err *base.Error) {
 
 // Close ...
 func (p *SyncConn) Close() {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if p.isRunning {
 		p.isRunning = false
@@ -98,10 +98,10 @@ func (p *SyncConn) OnReadReady() bool {
 			if p.isServer {
 				p.OnError(base.ErrConnRead.AddDebug(e.Error()))
 			} else {
-				p.Lock()
+				p.mu.Lock()
 				ignoreReport := (!p.isRunning) &&
 					strings.HasSuffix(e.Error(), base.ErrNetClosingSuffix)
-				p.Unlock()
+				p.mu.Unlock()
 
 				if !ignoreReport {
 					p.OnError(base.ErrConnRead.AddDebug(e.Error()))
@@ -118,8 +118,8 @@ func (p *SyncConn) OnReadReady() bool {
 
 // OnWriteReady ...
 func (p *SyncConn) OnWriteReady() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	isTriggerFinish := false
 

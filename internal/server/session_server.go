@@ -75,7 +75,7 @@ type Session struct {
 	activeTimeNS  int64
 	prev          *Session
 	next          *Session
-	sync.Mutex
+	mu            sync.Mutex
 }
 
 // InitSession ...
@@ -149,8 +149,8 @@ func InitSession(
 
 // TimeCheck ...
 func (p *Session) TimeCheck(nowNS int64) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if sessionServer := p.sessionServer; sessionServer != nil {
 		config := sessionServer.config
@@ -179,8 +179,8 @@ func (p *Session) TimeCheck(nowNS int64) {
 
 // OutStream ...
 func (p *Session) OutStream(stream *rpc.Stream) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if stream != nil {
 		switch stream.GetKind() {
@@ -205,8 +205,8 @@ func (p *Session) OutStream(stream *rpc.Stream) {
 
 // OnConnOpen ...
 func (p *Session) OnConnOpen(streamConn *adapter.StreamConn) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.conn = streamConn
 }
 
@@ -215,8 +215,8 @@ func (p *Session) OnConnReadStream(
 	streamConn *adapter.StreamConn,
 	stream *rpc.Stream,
 ) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	switch stream.GetKind() {
 	case rpc.StreamKindPing:
@@ -266,8 +266,8 @@ func (p *Session) OnConnError(streamConn *adapter.StreamConn, err *base.Error) {
 
 // OnConnClose ...
 func (p *Session) OnConnClose(_ *adapter.StreamConn) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.conn = nil
 }
 
@@ -276,7 +276,7 @@ type SessionPool struct {
 	sessionServer *SessionServer
 	idMap         map[uint64]*Session
 	head          *Session
-	sync.Mutex
+	mu            sync.Mutex
 }
 
 // NewSessionPool ...
@@ -290,8 +290,8 @@ func NewSessionPool(sessionServer *SessionServer) *SessionPool {
 
 // Get ...
 func (p *SessionPool) Get(id uint64) (*Session, bool) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	ret, ok := p.idMap[id]
 	return ret, ok
@@ -299,8 +299,8 @@ func (p *SessionPool) Get(id uint64) (*Session, bool) {
 
 // Add ...
 func (p *SessionPool) Add(session *Session) bool {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if session == nil {
 		return false
@@ -326,8 +326,8 @@ func (p *SessionPool) Add(session *Session) bool {
 
 // TimeCheck ...
 func (p *SessionPool) TimeCheck(nowNS int64) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	node := p.head
 	for node != nil {
@@ -367,7 +367,7 @@ type SessionServer struct {
 	config         *SessionConfig
 	adapters       []*adapter.Adapter
 	orcManager     *base.ORCManager
-	sync.Mutex
+	mu             sync.Mutex
 }
 
 // SessionServer ...
@@ -441,8 +441,8 @@ func (p *SessionServer) TimeCheck(nowNS int64) {
 // Open ...
 func (p *SessionServer) Open() {
 	p.orcManager.Open(func() bool {
-		p.Lock()
-		defer p.Unlock()
+		p.mu.Lock()
+		defer p.mu.Unlock()
 
 		if p.isRunning {
 			p.streamReceiver.OnReceiveStream(
@@ -498,8 +498,8 @@ func (p *SessionServer) Close() {
 			item.Close()
 		}
 	}, func() {
-		p.Lock()
-		defer p.Unlock()
+		p.mu.Lock()
+		defer p.mu.Unlock()
 		p.isRunning = false
 	})
 }

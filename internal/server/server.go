@@ -20,7 +20,7 @@ type Server struct {
 	sessionServer *SessionServer
 	streamHub     *rpc.StreamHub
 	mountServices []*rpc.ServiceMeta
-	sync.Mutex
+	mu            sync.Mutex
 }
 
 // NewServer ...
@@ -47,8 +47,8 @@ func (p *Server) Listen(
 	addr string,
 	tlsConfig *tls.Config,
 ) *Server {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if p.streamHub == nil {
 		p.listeners = append(p.listeners, &listener{
@@ -72,8 +72,8 @@ func (p *Server) ListenWithDebug(
 	addr string,
 	tlsConfig *tls.Config,
 ) *Server {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if p.streamHub == nil {
 		p.listeners = append(p.listeners, &listener{
@@ -97,8 +97,8 @@ func (p *Server) AddService(
 	service *rpc.Service,
 	data rpc.Map,
 ) *Server {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if p.streamHub == nil {
 		p.mountServices = append(p.mountServices, rpc.NewServiceMeta(
@@ -118,8 +118,8 @@ func (p *Server) AddService(
 
 // BuildReplyCache ...
 func (p *Server) BuildReplyCache() *base.Error {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	_, file, _, _ := runtime.Caller(1)
 	buildDir := path.Join(path.Dir(file))
@@ -147,8 +147,8 @@ func (p *Server) Open() bool {
 	source := base.GetFileLine(1)
 
 	ret := func() bool {
-		p.Lock()
-		defer p.Unlock()
+		p.mu.Lock()
+		defer p.mu.Unlock()
 
 		if p.streamHub != nil {
 			p.streamHub.OnReceiveStream(rpc.MakeSystemErrorStream(
@@ -224,16 +224,16 @@ func (p *Server) Open() bool {
 
 // IsRunning ...
 func (p *Server) IsRunning() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	return p.streamHub != nil
 }
 
 // Close ...
 func (p *Server) Close() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if p.streamHub == nil {
 		return false

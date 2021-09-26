@@ -12,7 +12,7 @@ type PerformanceIndicator struct {
 	successArray [8]int64
 	lastTotal    int64
 	lastTime     time.Time
-	sync.Mutex
+	mu           sync.Mutex
 }
 
 // NewPerformanceIndicator ...
@@ -56,8 +56,8 @@ func (p *PerformanceIndicator) Count(duration time.Duration, success bool) {
 
 // Calculate ...
 func (p *PerformanceIndicator) Calculate(now time.Time) (int64, time.Duration) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	// calculate total called
 	total := int64(0)

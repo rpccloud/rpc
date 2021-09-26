@@ -47,7 +47,6 @@ type rpcServiceNode struct {
 	depth   uint16
 	isMount bool
 	data    Map
-	sync.Mutex
 }
 
 func (p *rpcServiceNode) GetConfig(key string) (Any, bool) {
@@ -79,7 +78,7 @@ type Processor struct {
 	panicSubscription *base.PanicSubscription
 	streamReceiver    IStreamReceiver
 	closeCH           chan string
-	sync.Mutex
+	mu                sync.Mutex
 }
 
 // NewProcessor ...
@@ -204,8 +203,8 @@ func NewProcessor(
 
 // Close ...
 func (p *Processor) Close() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if atomic.CompareAndSwapInt32(
 		&p.status,
@@ -307,8 +306,8 @@ func (p *Processor) PutStream(stream *Stream) (ret bool) {
 
 // BuildCache ...
 func (p *Processor) BuildCache(pkgName string, path string) *base.Error {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if atomic.LoadInt32(&p.status) == processorStatusRunning {
 		retMap := make(map[string]bool)

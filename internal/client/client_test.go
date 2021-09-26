@@ -342,9 +342,9 @@ func TestNewClient(t *testing.T) {
 		)
 
 		for {
-			v.Lock()
+			v.mu.Lock()
 			conn := v.conn
-			v.Unlock()
+			v.mu.Unlock()
 
 			if conn == nil {
 				time.Sleep(10 * time.Millisecond)

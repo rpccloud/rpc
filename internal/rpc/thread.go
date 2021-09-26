@@ -91,7 +91,7 @@ type rpcThread struct {
 	cacheEntry      [8]cacheEntry
 	cacheArrayItems []posRecord
 	cacheMapItems   []mapItem
-	sync.Mutex
+	mu              sync.Mutex
 }
 
 func newRTArray(rt Runtime, size int) (ret RTArray) {
@@ -208,8 +208,8 @@ func (p *rpcThread) Reset() {
 }
 
 func (p *rpcThread) Close() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if chPtr := (*chan bool)(atomic.LoadPointer(&p.closeCH)); chPtr != nil {
 		atomic.StorePointer(&p.closeCH, nil)

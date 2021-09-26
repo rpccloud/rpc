@@ -40,7 +40,7 @@ func NewServiceMeta(
 type Service struct {
 	children []*ServiceMeta // all the children node meta pointer
 	actions  []*ActionMeta  // all the actions meta pointer
-	sync.Mutex
+	mu       sync.Mutex
 }
 
 // NewService define a new service
@@ -57,8 +57,8 @@ func (p *Service) AddChildService(
 	service *Service,
 	data Map,
 ) *Service {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	// add child meta
 	p.children = append(p.children, &ServiceMeta{
@@ -75,8 +75,8 @@ func (p *Service) On(
 	name string,
 	handler interface{},
 ) *Service {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	// add action meta
 	p.actions = append(p.actions, &ActionMeta{

@@ -279,12 +279,12 @@ type syncClientService struct {
 	adapter    *Adapter
 	conn       *SyncConn
 	orcManager *base.ORCManager
-	sync.Mutex
+	mu         sync.Mutex
 }
 
 func (p *syncClientService) openConn() bool {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	var e error
 	var conn net.Conn
@@ -333,8 +333,8 @@ func (p *syncClientService) openConn() bool {
 }
 
 func (p *syncClientService) closeConn() {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if conn := p.conn; conn != nil {
 		conn.Close()

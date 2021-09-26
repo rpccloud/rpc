@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"encoding/binary"
 	"net"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -103,7 +102,6 @@ type Channel struct {
 	receiveStreamGenerator *rpc.StreamGenerator
 	closeCH                chan bool
 	orcManager             *base.ORCManager
-	sync.Mutex
 }
 
 // NewChannel ...

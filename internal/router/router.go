@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"net"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -28,7 +27,6 @@ type Router struct {
 	upLink      string
 	streamHub   *rpc.StreamHub
 	orcManager  *base.ORCManager
-	sync.Mutex
 }
 
 // NewRouter ...

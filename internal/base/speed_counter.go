@@ -11,7 +11,7 @@ type SpeedCounter struct {
 	total     int64
 	lastCount int64
 	lastTime  time.Time
-	sync.Mutex
+	mu        sync.Mutex
 }
 
 // NewSpeedCounter ...
@@ -37,8 +37,8 @@ func (p *SpeedCounter) Total() int64 {
 func (p *SpeedCounter) Calculate(
 	now time.Time,
 ) (int64, time.Duration) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	deltaCount := atomic.LoadInt64(&p.total) - p.lastCount
 	deltaTime := now.Sub(p.lastTime)

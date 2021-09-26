@@ -11,7 +11,7 @@ import (
 type Logger struct {
 	isLogToScreen bool
 	file          *os.File
-	sync.Mutex
+	mu            sync.Mutex
 }
 
 // NewLogger ...
@@ -63,8 +63,8 @@ func (p *Logger) Log(str string) {
 
 // Close ...
 func (p *Logger) Close() *Error {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	if p.file != nil {
 		if e := p.file.Close(); e != nil {

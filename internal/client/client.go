@@ -153,7 +153,7 @@ type Client struct {
 	orcManager      *base.ORCManager
 	onError         func(err *base.Error)
 	subscriptionMap map[string][]*Subscription
-	sync.Mutex
+	mu              sync.Mutex
 }
 
 // NewClient ...
@@ -198,11 +198,11 @@ func NewClient(
 			for isRunning() {
 				time.Sleep(time.Second)
 				nowNS := base.TimeNow().UnixNano()
-				ret.Lock()
+				ret.mu.Lock()
 				ret.tryToTimeout(nowNS)
 				ret.tryToDeliverPreSendMessages()
 				ret.tryToSendPing(nowNS)
-				ret.Unlock()
+				ret.mu.Unlock()
 			}
 		})
 	}()
@@ -355,8 +355,8 @@ func (p *Client) Subscribe(
 	message string,
 	fn func(value rpc.Any),
 ) *Subscription {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	ret := &Subscription{
 		id:        base.GetSeed(),
@@ -375,8 +375,8 @@ func (p *Client) Subscribe(
 }
 
 func (p *Client) unsubscribe(id int64) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	for key, list := range p.subscriptionMap {
 		pos := -1
@@ -423,7 +423,7 @@ func (p *Client) Send(
 	}
 
 	// add item to the list tail
-	p.Lock()
+	p.mu.Lock()
 	if p.preSendTail == nil {
 		p.preSendHead = item
 		p.preSendTail = item
@@ -432,7 +432,7 @@ func (p *Client) Send(
 		p.preSendTail = item
 	}
 	p.tryToDeliverPreSendMessages()
-	p.Unlock()
+	p.mu.Unlock()
 
 	// wait for response
 	backStream := <-item.returnCH
@@ -452,8 +452,8 @@ func (p *Client) Close() bool {
 
 // OnConnOpen ...
 func (p *Client) OnConnOpen(streamConn *adapter.StreamConn) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	stream := rpc.NewStream()
 	stream.SetKind(rpc.StreamKindConnectRequest)
@@ -467,8 +467,8 @@ func (p *Client) OnConnReadStream(
 	streamConn *adapter.StreamConn,
 	stream *rpc.Stream,
 ) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 
 	callbackID := stream.GetCallbackID()
 
@@ -534,7 +534,7 @@ func (p *Client) OnConnError(streamConn *adapter.StreamConn, err *base.Error) {
 
 // OnConnClose ...
 func (p *Client) OnConnClose(_ *adapter.StreamConn) {
-	p.Lock()
-	defer p.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.conn = nil
 }
