@@ -108,15 +108,15 @@ func NewClient(
 	)
 }
 
-// GetTLSServerConfig ...
-func GetTLSServerConfig(certFile string, keyFile string) (*tls.Config, error) {
-	return base.GetTLSServerConfig(certFile, keyFile)
+// GetServerTLSConfig ...
+func GetServerTLSConfig(certFile string, keyFile string) (*tls.Config, error) {
+	return base.GetServerTLSConfig(certFile, keyFile)
 }
 
-// GetTLSClientConfig ...
-func GetTLSClientConfig(
+// GetClientTLSConfig ...
+func GetClientTLSConfig(
 	verifyServerCert bool,
 	caFiles []string,
 ) (*tls.Config, error) {
-	return base.GetTLSClientConfig(verifyServerCert, caFiles)
+	return base.GetClientTLSConfig(verifyServerCert, caFiles)
 }

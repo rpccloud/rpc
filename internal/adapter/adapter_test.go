@@ -249,11 +249,11 @@ func TestAdapter(t *testing.T) {
 		tlsServerConfig := (*tls.Config)(nil)
 
 		if isTLS {
-			tlsServerConfig, _ = base.GetTLSServerConfig(
+			tlsServerConfig, _ = base.GetServerTLSConfig(
 				path.Join(curDir, "_cert_", "server", "server.pem"),
 				path.Join(curDir, "_cert_", "server", "server-key.pem"),
 			)
-			tlsClientConfig, _ = base.GetTLSClientConfig(true, []string{
+			tlsClientConfig, _ = base.GetClientTLSConfig(true, []string{
 				path.Join(curDir, "_cert_", "ca", "ca.pem"),
 			})
 		}

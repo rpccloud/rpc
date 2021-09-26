@@ -266,8 +266,8 @@ func WaitWhileRunning(
 	}
 }
 
-// GetTLSServerConfig ...
-func GetTLSServerConfig(certFile string, keyFile string) (*tls.Config, error) {
+// GetServerTLSConfig ...
+func GetServerTLSConfig(certFile string, keyFile string) (*tls.Config, error) {
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
 
 	if err != nil {
@@ -301,8 +301,8 @@ func GetTLSServerConfig(certFile string, keyFile string) (*tls.Config, error) {
 	}, nil
 }
 
-// GetTLSClientConfig ...
-func GetTLSClientConfig(
+// GetClientTLSConfig ...
+func GetClientTLSConfig(
 	verifyServerCert bool,
 	caFiles []string,
 ) (*tls.Config, error) {

@@ -360,7 +360,7 @@ func TestGetTLSServerConfig(t *testing.T) {
 
 	t.Run("cert or key error", func(t *testing.T) {
 		assert := NewAssert(t)
-		ret, e := GetTLSServerConfig(
+		ret, e := GetServerTLSConfig(
 			path.Join(curDir, "_cert_", "error.crt"),
 			path.Join(curDir, "_cert_", "error.key"),
 		)
@@ -370,7 +370,7 @@ func TestGetTLSServerConfig(t *testing.T) {
 
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		ret, e := GetTLSServerConfig(
+		ret, e := GetServerTLSConfig(
 			path.Join(curDir, "_cert_", "test.crt"),
 			path.Join(curDir, "_cert_", "test.key"),
 		)
@@ -409,7 +409,7 @@ func TestGetTLSClientConfig(t *testing.T) {
 
 	t.Run("ca error 01", func(t *testing.T) {
 		assert := NewAssert(t)
-		ret, e := GetTLSClientConfig(
+		ret, e := GetClientTLSConfig(
 			true,
 			[]string{path.Join(curDir, "_cert_", "not_exist.ca")},
 		)
@@ -419,7 +419,7 @@ func TestGetTLSClientConfig(t *testing.T) {
 
 	t.Run("ca error 02", func(t *testing.T) {
 		assert := NewAssert(t)
-		ret, e := GetTLSClientConfig(
+		ret, e := GetClientTLSConfig(
 			true,
 			[]string{
 				path.Join(curDir, "_cert_", "ca.crt"),
@@ -440,7 +440,7 @@ func TestGetTLSClientConfig(t *testing.T) {
 
 	t.Run("test", func(t *testing.T) {
 		assert := NewAssert(t)
-		ret, e := GetTLSClientConfig(
+		ret, e := GetClientTLSConfig(
 			true,
 			[]string{
 				path.Join(curDir, "_cert_", "ca.crt"),
