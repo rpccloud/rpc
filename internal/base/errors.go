@@ -450,5 +450,3 @@ var (
 		"kernel error",
 	)
 )
-
-// const jsAdapterErrorSeg = 102 << 8
