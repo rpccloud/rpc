@@ -85,7 +85,7 @@ func TestLogger_Log(t *testing.T) {
 
 		assert(captureStdout(func() {
 			v.Log("hello")
-		})).Equals("hello")
+		})).Equals("hello\n")
 
 		v.Close()
 	})
@@ -98,7 +98,7 @@ func TestLogger_Log(t *testing.T) {
 			v.Log("hello")
 		})).Equals("")
 
-		assert(getFileContent("test.log")).Equals("hello")
+		assert(getFileContent("test.log")).Equals("hello\n")
 
 		v.Close()
 		_ = os.Remove("test.log")

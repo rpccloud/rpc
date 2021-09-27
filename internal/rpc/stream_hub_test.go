@@ -101,7 +101,7 @@ func TestStreamHub_OnReceiveStream(t *testing.T) {
 		logStr, _ := base.ReadFromFile("./tmp01/test.log")
 		assert(strings.HasSuffix(
 			logStr,
-			" <sessionID:17> SecurityWarn[1]: stream error",
+			" <sessionID:17> SecurityWarn[1]: stream error\n",
 		)).IsTrue()
 		assert(<-errCH).Equals(base.ErrStream)
 		assert(len(errCH)).Equals(0)

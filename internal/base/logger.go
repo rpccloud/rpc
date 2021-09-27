@@ -53,11 +53,11 @@ func NewLogger(isLogToScreen bool, outFile string) (*Logger, *Error) {
 // Log ...
 func (p *Logger) Log(str string) {
 	if p.file != nil {
-		_, _ = p.file.WriteString(str)
+		_, _ = p.file.WriteString(ConcatString(str, "\n"))
 	}
 
 	if p.isLogToScreen {
-		_, _ = os.Stdout.WriteString(str)
+		_, _ = os.Stdout.WriteString(ConcatString(str, "\n"))
 	}
 }
 

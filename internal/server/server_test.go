@@ -234,7 +234,7 @@ func TestServer_Open(t *testing.T) {
 
 		assert(strings.HasSuffix(
 			outStr,
-			"ConfigFatal[20]: numOfThreads is wrong",
+			"ConfigFatal[20]: numOfThreads is wrong\n",
 		)).IsTrue()
 	})
 
