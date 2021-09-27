@@ -418,28 +418,28 @@ var (
 	// ErrSyncClientServiceDial ...
 	ErrSyncClientServiceDial = DefineNetError(
 		goAdapterErrorSeg|9,
-		ErrorLevelFatal,
+		ErrorLevelWarn,
 		"",
 	)
 
 	// ErrConnClose ...
 	ErrConnClose = DefineNetError(
 		goAdapterErrorSeg|10,
-		ErrorLevelFatal,
+		ErrorLevelWarn,
 		"",
 	)
 
 	// ErrConnRead ...
 	ErrConnRead = DefineNetError(
 		goAdapterErrorSeg|11,
-		ErrorLevelFatal,
+		ErrorLevelWarn,
 		"",
 	)
 
 	// ErrConnWrite ...
 	ErrConnWrite = DefineNetError(
 		goAdapterErrorSeg|12,
-		ErrorLevelFatal,
+		ErrorLevelWarn,
 		"",
 	)
 
