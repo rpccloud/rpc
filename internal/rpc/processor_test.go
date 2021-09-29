@@ -107,7 +107,7 @@ func TestProcessor(t *testing.T) {
 		emptyEvalFinish(nil)
 		assert(actionNameRegex.MatchString("$onMount")).IsTrue()
 		assert(actionNameRegex.MatchString("$onUnmount")).IsTrue()
-		assert(actionNameRegex.MatchString("$onUpdateConfig")).IsTrue()
+		assert(actionNameRegex.MatchString("$onTimer")).IsTrue()
 		assert(actionNameRegex.MatchString("onMount")).IsTrue()
 		assert(actionNameRegex.MatchString("sayHello")).IsTrue()
 		assert(actionNameRegex.MatchString("$sayHello")).IsFalse()
@@ -216,8 +216,8 @@ func TestNewProcessor(t *testing.T) {
 				wait <- "$onMount called"
 				return rt.Reply(true)
 			}).
-			On("$onUpdateConfig", func(rt Runtime) Return {
-				wait <- "$onUpdateConfig called"
+			On("$onTimer", func(rt Runtime, _ uint64) Return {
+				wait <- "$onTimer called"
 				return rt.Reply(true)
 			}).
 			On("$onUnmount", func(rt Runtime) Return {
@@ -235,7 +235,7 @@ func TestNewProcessor(t *testing.T) {
 		)
 		assert(processor).IsNotNil()
 		assert(<-wait).Equals("$onMount called")
-		assert(<-wait).Equals("$onUpdateConfig called")
+		assert(<-wait).Equals("$onTimer called")
 		processor.Close()
 		assert(<-wait).Equals("$onUnmount called")
 	})
@@ -497,7 +497,7 @@ func TestProcessor_BuildCache(t *testing.T) {
 	})
 }
 
-func TestProcessor_onUpdateConfig(t *testing.T) {
+func TestProcessor_onTimer(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		waitCH := make(chan bool, 2)
@@ -511,7 +511,8 @@ func TestProcessor_onUpdateConfig(t *testing.T) {
 			[]*ServiceMeta{{
 				name: "test1",
 				service: NewService().On(
-					"$onUpdateConfig", func(rt Runtime) Return {
+					"$onTimer", func(rt Runtime, v uint64) Return {
+						assert(v).Equals(uint64(1))
 						waitCH <- true
 						return rt.Reply(true)
 					},
@@ -520,7 +521,7 @@ func TestProcessor_onUpdateConfig(t *testing.T) {
 			}, {
 				name: "test2",
 				service: NewService().On(
-					"$onUpdateConfig", func(rt Runtime) Return {
+					"$onTimer", func(rt Runtime, _ uint64) Return {
 						waitCH <- true
 						return rt.Reply(true)
 					},
@@ -529,7 +530,7 @@ func TestProcessor_onUpdateConfig(t *testing.T) {
 			}},
 			NewTestStreamReceiver(),
 		)
-		processor.onUpdateConfig()
+		processor.onTimer(1)
 		assert(<-waitCH).Equals(true)
 		assert(<-waitCH).Equals(true)
 		processor.Close()
@@ -554,7 +555,7 @@ func TestProcessor_invokeSystemAction(t *testing.T) {
 						waitCH <- true
 						return rt.Reply(true)
 					}).
-					On("$onUpdateConfig", func(rt Runtime) Return {
+					On("$onTimer", func(rt Runtime, _ uint64) Return {
 						waitCH <- true
 						return rt.Reply(true)
 					}).
@@ -570,7 +571,7 @@ func TestProcessor_invokeSystemAction(t *testing.T) {
 		// for default onMount
 		assert(<-waitCH).Equals(true)
 		assert(processor.invokeSystemAction("#.test", "$onMount")).IsTrue()
-		assert(processor.invokeSystemAction("#.test", "$onUpdateConfig")).
+		assert(processor.invokeSystemAction("#.test", "$onTimer", 1)).
 			IsTrue()
 		assert(processor.invokeSystemAction("#.test", "$onUnmount")).IsTrue()
 		assert(<-waitCH).Equals(true)

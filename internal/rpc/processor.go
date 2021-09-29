@@ -24,7 +24,7 @@ var (
 	actionNameRegex = regexp.MustCompile(
 		`^([_a-zA-Z][_0-9a-zA-Z]*)` +
 			`|` +
-			`(\$onMount)|(\$onUnmount)|(\$onUpdateConfig)$`,
+			`(\$onMount)|(\$onUnmount)|(\$onTimer)$`,
 	)
 	emptyEvalBack   = func(*Stream) {}
 	emptyEvalFinish = func(*rpcThread) {}
@@ -79,6 +79,7 @@ type Processor struct {
 	streamReceiver    IStreamReceiver
 	closeCH           chan string
 	mu                sync.Mutex
+	muSystemInvoke    sync.Mutex
 }
 
 // NewProcessor ...
@@ -161,11 +162,14 @@ func NewProcessor(
 		// start config update
 		go func() {
 			counter := uint64(0)
+			evalTime := base.TimeNow()
 			for atomic.LoadInt32(&ret.status) == processorStatusRunning {
 				time.Sleep(50 * time.Millisecond)
-				counter++
-				if counter%60 == 0 {
-					ret.onUpdateConfig()
+				timeNow := base.TimeNow()
+				if timeNow.Sub(evalTime) > time.Second {
+					evalTime = timeNow
+					counter++
+					ret.onTimer(counter)
 				}
 			}
 			ret.closeCH <- ""
@@ -328,16 +332,23 @@ func (p *Processor) BuildCache(pkgName string, path string) *base.Error {
 	return base.ErrProcessorIsNotRunning
 }
 
-func (p *Processor) onUpdateConfig() {
+func (p *Processor) onTimer(sequence uint64) {
 	for key := range p.servicesMap {
-		p.invokeSystemAction(key, "$onUpdateConfig")
+		p.invokeSystemAction(key, "$onTimer", sequence)
 	}
 }
 
-func (p *Processor) invokeSystemAction(path string, name string) bool {
+func (p *Processor) invokeSystemAction(
+	path string,
+	name string,
+	args ...interface{},
+) bool {
+	p.muSystemInvoke.Lock()
+	defer p.muSystemInvoke.Unlock()
+
 	actionPath := path + ":" + name
 	if _, ok := p.actionsMap[actionPath]; ok {
-		stream, _ := MakeInternalRequestStream(true, 0, actionPath, "")
+		stream, _ := MakeInternalRequestStream(true, 0, actionPath, "", args...)
 		defer func() {
 			stream.Release()
 		}()
