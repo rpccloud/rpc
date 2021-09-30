@@ -190,6 +190,8 @@ func (p Runtime) SetServiceConfig(key string, value Any) bool {
 }
 
 func (p Runtime) parseResponseStream(stream *Stream) RTValue {
+	stream.SetReadPos(streamPosBody)
+
 	switch stream.GetKind() {
 	case StreamKindRPCResponseOK:
 		ret, _ := stream.ReadRTValue(p)

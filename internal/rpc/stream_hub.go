@@ -44,6 +44,7 @@ func NewStreamHub(
 // OnReceiveStream ...
 func (p *StreamHub) OnReceiveStream(stream *Stream) {
 	if stream != nil {
+        stream.SetReadPos(streamPosBody)
 		fn := (func(stream *Stream))(nil)
 		switch stream.GetKind() {
 		case StreamKindRPCRequest:
