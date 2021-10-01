@@ -68,8 +68,8 @@ type ActionCacheFunc = rpc.ActionCacheFunc
 type Service = rpc.Service
 
 // NewService ...
-func NewService() *Service {
-	return rpc.NewService()
+func NewService(config rpc.Map) *Service {
+	return rpc.NewService(config)
 }
 
 // Server ...

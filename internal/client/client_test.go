@@ -66,7 +66,7 @@ func (p *testNetConn) SetWriteDeadline(_ time.Time) error {
 }
 
 func getTestServer() *server.Server {
-	userService := rpc.NewService().
+	userService := rpc.NewService(nil).
 		On("SayHello", func(rt rpc.Runtime, name rpc.String) rpc.Return {
 			return rt.Reply("hello " + name)
 		}).

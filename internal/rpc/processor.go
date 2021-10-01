@@ -46,17 +46,17 @@ type rpcServiceNode struct {
 	addMeta *ServiceMeta
 	depth   uint16
 	isMount bool
-	data    Map
+	config  Map
 }
 
 func (p *rpcServiceNode) GetConfig(key string) (Any, bool) {
-	v, ok := p.data[key]
+	v, ok := p.config[key]
 	return v, ok
 }
 
 func (p *rpcServiceNode) SetConfig(key string, value Any) bool {
-	if p.data != nil {
-		p.data[key] = value
+	if p.config != nil {
+		p.config[key] = value
 		return true
 	}
 
@@ -149,7 +149,7 @@ func NewProcessor(
 			path:    rootName,
 			addMeta: nil,
 			depth:   0,
-			data:    Map{},
+			config:  Map{},
 		}
 
 		for _, meta := range mountServices {
@@ -400,12 +400,16 @@ func (p *Processor) mountNode(
 				path:    servicePath,
 				addMeta: nodeMeta,
 				depth:   parentNode.depth + 1,
-				data:    Map{},
+				config:  Map{},
 				isMount: false,
 			}
 
-			for k, v := range nodeMeta.data {
-				node.data[k] = v
+			for k, v := range nodeMeta.service.config {
+				node.config[k] = v
+			}
+
+			for k, v := range nodeMeta.config {
+				node.config[k] = v
 			}
 
 			// mount the node

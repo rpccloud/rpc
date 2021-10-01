@@ -95,7 +95,7 @@ func (p *Server) ListenWithDebug(
 func (p *Server) AddService(
 	name string,
 	service *rpc.Service,
-	data rpc.Map,
+	config rpc.Map,
 ) *Server {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -105,7 +105,7 @@ func (p *Server) AddService(
 			name,
 			service,
 			base.GetFileLine(1),
-			data,
+			config,
 		))
 	} else {
 		p.streamHub.OnReceiveStream(rpc.MakeSystemErrorStream(

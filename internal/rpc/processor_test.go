@@ -58,7 +58,7 @@ func testProcessorMountError(services []*ServiceMeta) *base.Error {
 }
 
 func TestRpcActionNode_GetConfig(t *testing.T) {
-	t.Run("data is nil", func(t *testing.T) {
+	t.Run("config is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &rpcServiceNode{}
 		assert(v.GetConfig("name")).Equals(nil, false)
@@ -66,37 +66,37 @@ func TestRpcActionNode_GetConfig(t *testing.T) {
 
 	t.Run("key does not exist", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := &rpcServiceNode{data: Map{"age": 18}}
+		v := &rpcServiceNode{config: Map{"age": 18}}
 		assert(v.GetConfig("name")).Equals(nil, false)
 	})
 
 	t.Run("key exists", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := &rpcServiceNode{data: Map{"age": 18}}
+		v := &rpcServiceNode{config: Map{"age": 18}}
 		assert(v.GetConfig("age")).Equals(18, true)
 	})
 }
 
 func TestRpcActionNode_SetConfig(t *testing.T) {
-	t.Run("data is nil", func(t *testing.T) {
+	t.Run("config is nil", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := &rpcServiceNode{}
 		v.SetConfig("age", 3)
-		assert(v.data).Equals(nil)
+		assert(v.config).Equals(nil)
 	})
 
 	t.Run("key does not exist", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := &rpcServiceNode{data: Map{}}
+		v := &rpcServiceNode{config: Map{}}
 		v.SetConfig("age", 3)
-		assert(v.data).Equals(Map{"age": 3})
+		assert(v.config).Equals(Map{"age": 3})
 	})
 
 	t.Run("key exists", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := &rpcServiceNode{data: Map{"age": 5}}
+		v := &rpcServiceNode{config: Map{"age": 5}}
 		v.SetConfig("age", 3)
-		assert(v.data).Equals(Map{"age": 3})
+		assert(v.config).Equals(Map{"age": 3})
 	})
 }
 
@@ -175,7 +175,7 @@ func TestNewProcessor(t *testing.T) {
 			1, 16, 16, 2048, nil, 5*time.Second,
 			[]*ServiceMeta{{
 				name: "test",
-				service: NewService().On("Eval", func(rt Runtime) Return {
+				service: NewService(nil).On("Eval", func(rt Runtime) Return {
 					return rt.Reply(true)
 				}),
 				fileLine: "",
@@ -194,7 +194,7 @@ func TestNewProcessor(t *testing.T) {
 			1, 16, 16, 2048, nil, 5*time.Second,
 			[]*ServiceMeta{{
 				name: "test",
-				service: NewService().On("Eval", func(rt Runtime) Return {
+				service: NewService(nil).On("Eval", func(rt Runtime) Return {
 					return rt.Reply(true)
 				}),
 				fileLine: "",
@@ -211,7 +211,7 @@ func TestNewProcessor(t *testing.T) {
 	t.Run("test ok (system action)", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		wait := make(chan string, 3)
-		service := NewService().
+		service := NewService(nil).
 			On("$onMount", func(rt Runtime) Return {
 				wait <- "$onMount called"
 				return rt.Reply(true)
@@ -243,7 +243,7 @@ func TestNewProcessor(t *testing.T) {
 	t.Run("test ok (10K calls)", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		streamReceiver := NewTestStreamReceiver()
-		service := NewService().
+		service := NewService(nil).
 			On("Eval", func(rt Runtime) Return {
 				return rt.Reply(true)
 			})
@@ -314,14 +314,15 @@ func TestProcessor_Close(t *testing.T) {
 				time.Second,
 				[]*ServiceMeta{{
 					name: "test",
-					service: NewService().On("Eval", func(rt Runtime) Return {
-						waitCH <- true
-						mutex.Lock()
-						source = rt.thread.GetExecActionDebug()
-						mutex.Unlock()
-						time.Sleep(4 * time.Second)
-						return rt.Reply(true)
-					}),
+					service: NewService(nil).
+						On("Eval", func(rt Runtime) Return {
+							waitCH <- true
+							mutex.Lock()
+							source = rt.thread.GetExecActionDebug()
+							mutex.Unlock()
+							time.Sleep(4 * time.Second)
+							return rt.Reply(true)
+						}),
 					fileLine: "",
 				}},
 				streamReceiver,
@@ -466,7 +467,7 @@ func TestProcessor_BuildCache(t *testing.T) {
 			time.Second,
 			[]*ServiceMeta{{
 				name: "test",
-				service: NewService().On("Eval", func(rt Runtime) Return {
+				service: NewService(nil).On("Eval", func(rt Runtime) Return {
 					return rt.Reply(true)
 				}),
 				fileLine: "",
@@ -510,7 +511,7 @@ func TestProcessor_onTimer(t *testing.T) {
 			time.Second,
 			[]*ServiceMeta{{
 				name: "test1",
-				service: NewService().On(
+				service: NewService(nil).On(
 					"$onTimer", func(rt Runtime, v uint64) Return {
 						assert(v).Equals(uint64(1))
 						waitCH <- true
@@ -520,7 +521,7 @@ func TestProcessor_onTimer(t *testing.T) {
 				fileLine: "",
 			}, {
 				name: "test2",
-				service: NewService().On(
+				service: NewService(nil).On(
 					"$onTimer", func(rt Runtime, _ uint64) Return {
 						waitCH <- true
 						return rt.Reply(true)
@@ -550,7 +551,7 @@ func TestProcessor_invokeSystemAction(t *testing.T) {
 			time.Second,
 			[]*ServiceMeta{{
 				name: "test",
-				service: NewService().
+				service: NewService(nil).
 					On("$onMount", func(rt Runtime) Return {
 						waitCH <- true
 						return rt.Reply(true)
@@ -593,7 +594,7 @@ func TestProcessor_mountNode(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(testProcessorMountError([]*ServiceMeta{{
 			name:     "+",
-			service:  NewService(),
+			service:  NewService(nil),
 			fileLine: "dbg",
 		}})).Equals(base.ErrServiceName.
 			AddDebug("service name + is illegal").
@@ -613,11 +614,11 @@ func TestProcessor_mountNode(t *testing.T) {
 
 	t.Run("depth overflows", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		embedService, source := NewService().
-			AddChildService("s", NewService(), nil), base.GetFileLine(0)
+		embedService, source := NewService(nil).
+			AddChildService("s", NewService(nil), nil), base.GetFileLine(0)
 		assert(testProcessorMountError([]*ServiceMeta{{
 			name:     "s",
-			service:  NewService().AddChildService("s", embedService, nil),
+			service:  NewService(nil).AddChildService("s", embedService, nil),
 			fileLine: "dbg",
 		}})).Equals(base.ErrServiceOverflow.AddDebug(
 			"service path #.s.s.s overflows (max depth: 2, current depth:3)",
@@ -628,11 +629,11 @@ func TestProcessor_mountNode(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(testProcessorMountError([]*ServiceMeta{{
 			name:     "user",
-			service:  NewService(),
+			service:  NewService(nil),
 			fileLine: "Debug1",
 		}, {
 			name:     "user",
-			service:  NewService(),
+			service:  NewService(nil),
 			fileLine: "Debug2",
 		}})).Equals(base.ErrServiceName.
 			AddDebug("duplicated service name user").
@@ -645,11 +646,11 @@ func TestProcessor_mountNode(t *testing.T) {
 		assert := base.NewAssert(t)
 		assert(testProcessorMountError([]*ServiceMeta{{
 			name:     "user",
-			service:  NewService(),
+			service:  NewService(nil),
 			fileLine: "dbg1",
 		}, {
 			name:     "user",
-			service:  NewService(),
+			service:  NewService(nil),
 			fileLine: "dbg2",
 		}})).Equals(base.ErrServiceName.
 			AddDebug("duplicated service name user").
@@ -694,11 +695,11 @@ func TestProcessor_mountNode(t *testing.T) {
 			time.Second,
 			[]*ServiceMeta{{
 				name: "user",
-				service: NewService().On("Login", func(rt Runtime) Return {
+				service: NewService(nil).On("Login", func(rt Runtime) Return {
 					return rt.Reply(true)
 				}),
 				fileLine: "dbg",
-				data:     Map{"name": "kitty", "age": 18},
+				config:   Map{"name": "kitty", "age": 18},
 			}},
 			NewTestStreamReceiver(),
 		)
@@ -709,10 +710,10 @@ func TestProcessor_mountNode(t *testing.T) {
 				name:     "user",
 				service:  processor.servicesMap["#.user"].addMeta.service,
 				fileLine: "dbg",
-				data:     Map{"name": "kitty", "age": 18},
+				config:   Map{"name": "kitty", "age": 18},
 			},
 			depth:   1,
-			data:    Map{"name": "kitty", "age": 18},
+			config:  Map{"name": "kitty", "age": 18},
 			isMount: true,
 		})
 	})
@@ -917,7 +918,7 @@ func TestProcessor_unmount(t *testing.T) {
 			time.Second,
 			[]*ServiceMeta{{
 				name: "test1",
-				service: NewService().
+				service: NewService(nil).
 					On("action", handler).
 					On("$onUnmount", func(rt Runtime) Return {
 						waitCH <- "test1"
@@ -926,7 +927,7 @@ func TestProcessor_unmount(t *testing.T) {
 				fileLine: "nodeDebug",
 			}, {
 				name: "test2",
-				service: NewService().
+				service: NewService(nil).
 					On("action", handler).
 					On("$onUnmount", func(rt Runtime) Return {
 						waitCH <- "test2"
@@ -935,7 +936,7 @@ func TestProcessor_unmount(t *testing.T) {
 				fileLine: "nodeDebug",
 			}, {
 				name: "test3",
-				service: NewService().
+				service: NewService(nil).
 					On("action", handler).
 					On("$onUnmount", func(rt Runtime) Return {
 						waitCH <- "test3"

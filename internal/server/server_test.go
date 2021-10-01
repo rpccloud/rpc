@@ -143,7 +143,7 @@ func TestServer_AddService(t *testing.T) {
 	t.Run("server is already running", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		errCH := make(chan *base.Error, 1)
-		service := rpc.NewService()
+		service := rpc.NewService(nil)
 		v := NewServer(nil)
 		v.streamHub = rpc.NewStreamHub(
 			true, "", base.ErrorLogAll, rpc.StreamHubCallback{
@@ -163,7 +163,7 @@ func TestServer_AddService(t *testing.T) {
 
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		service := rpc.NewService()
+		service := rpc.NewService(nil)
 		v := NewServer(nil)
 		_, source := v.AddService("t", service, nil), base.GetFileLine(0)
 		assert(v.mountServices[0]).Equals(rpc.NewServiceMeta(
@@ -258,7 +258,7 @@ func TestServer_Open(t *testing.T) {
 
 	t.Run("OnRPCResponseOKStream", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		service := rpc.NewService().On(
+		service := rpc.NewService(nil).On(
 			"SayHello",
 			func(rt rpc.Runtime) rpc.Return {
 				return rt.Reply("Hello")
@@ -309,7 +309,7 @@ func TestServer_Open(t *testing.T) {
 
 	t.Run("OnRPCBoardCastStream", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		service := rpc.NewService().On(
+		service := rpc.NewService(nil).On(
 			"SayHello",
 			func(rt rpc.Runtime) rpc.Return {
 				_ = rt.Post(rt.GetPostEndPoint(), "SayHello", "Hello")

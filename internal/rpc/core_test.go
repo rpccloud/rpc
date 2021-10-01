@@ -541,7 +541,7 @@ func (p *testProcessorHelper) Close() {
 
 func testWithProcessorAndRuntime(
 	fn func(processor *Processor, rt Runtime) Return,
-	data Map,
+	config Map,
 ) *Stream {
 	helper := (*testProcessorHelper)(nil)
 	helper = newTestProcessorHelper(
@@ -553,7 +553,7 @@ func testWithProcessorAndRuntime(
 		3*time.Second,
 		[]*ServiceMeta{{
 			name: "test",
-			service: NewService().
+			service: NewService(nil).
 				On("Eval", func(rt Runtime) Return {
 					return fn(helper.processor, rt)
 				}).
@@ -561,7 +561,7 @@ func testWithProcessorAndRuntime(
 					return rt.Reply("hello " + name)
 				}),
 			fileLine: "",
-			data:     data,
+			config:   config,
 		}},
 	)
 	defer helper.Close()
@@ -576,11 +576,11 @@ func testWithProcessorAndRuntime(
 func testReplyWithSource(
 	debug bool,
 	fnCache ActionCache,
-	data Map,
+	config Map,
 	handler interface{},
 	args ...interface{},
 ) (*Stream, string) {
-	service, source := NewService().On("Eval", handler), base.GetFileLine(0)
+	service, source := NewService(nil).On("Eval", handler), base.GetFileLine(0)
 	helper := newTestProcessorHelper(
 		1,
 		16,
@@ -592,7 +592,7 @@ func testReplyWithSource(
 			name:     "test",
 			service:  service,
 			fileLine: "",
-			data:     data,
+			config:   config,
 		}},
 	)
 	defer helper.Close()
@@ -611,10 +611,10 @@ func testReplyWithSource(
 func testReply(
 	debug bool,
 	fnCache ActionCache,
-	data Map,
+	config Map,
 	handler interface{},
 	args ...interface{},
 ) (Any, *base.Error) {
-	retStream, _ := testReplyWithSource(debug, fnCache, data, handler, args...)
-	return ParseResponseStream(retStream)
+	rStream, _ := testReplyWithSource(debug, fnCache, config, handler, args...)
+	return ParseResponseStream(rStream)
 }

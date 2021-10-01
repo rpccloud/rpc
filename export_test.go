@@ -9,7 +9,7 @@ import (
 func TestNewService(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		assert(NewService()).IsNotNil()
+		assert(NewService(nil)).IsNotNil()
 	})
 }
 

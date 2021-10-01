@@ -37,9 +37,9 @@ func testWithRPCBenchmark(
 			5*time.Second,
 			[]*ServiceMeta{{
 				name:     "test",
-				service:  NewService().On("bench", handler),
+				service:  NewService(nil).On("bench", handler),
 				fileLine: "",
-				data:     serviceData,
+				config:   serviceData,
 			}},
 			&blackHoleStreamReceiver{},
 		); processor != nil {

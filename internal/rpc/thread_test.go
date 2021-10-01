@@ -1356,11 +1356,12 @@ func TestRpcThread_Eval(t *testing.T) {
 				3*time.Second,
 				[]*ServiceMeta{{
 					name: "test",
-					service: NewService().On("Eval", func(rt Runtime) Return {
-						return rt.Reply(true)
-					}),
+					service: NewService(nil).
+						On("Eval", func(rt Runtime) Return {
+							return rt.Reply(true)
+						}),
 					fileLine: "",
-					data:     nil,
+					config:   nil,
 				}},
 				streamReceiver,
 			)

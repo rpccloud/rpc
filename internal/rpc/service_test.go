@@ -9,7 +9,7 @@ import (
 func TestNewServiceMeta(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		service := NewService()
+		service := NewService(nil)
 		assert(NewServiceMeta("test", service, "debug", nil)).
 			Equals(&ServiceMeta{
 				name:     "test",
@@ -22,7 +22,7 @@ func TestNewServiceMeta(t *testing.T) {
 func TestNewService(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		service := NewService()
+		service := NewService(nil)
 		assert(service).IsNotNil()
 		assert(len(service.children)).Equals(0)
 		assert(len(service.actions)).Equals(0)
@@ -32,8 +32,8 @@ func TestNewService(t *testing.T) {
 func TestService_AddChildService(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		child := NewService()
-		service, fileLine := NewService().
+		child := NewService(nil)
+		service, fileLine := NewService(nil).
 			AddChildService("ch", child, nil), base.GetFileLine(0)
 		assert(service).IsNotNil()
 		assert(len(service.children)).Equals(1)
@@ -48,7 +48,7 @@ func TestService_On(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		getFL := base.GetFileLine
-		service, fileLine := NewService().On("sayHello", 2345), getFL(0)
+		service, fileLine := NewService(nil).On("sayHello", 2345), getFL(0)
 		assert(service).IsNotNil()
 		assert(len(service.children)).Equals(0)
 		assert(len(service.actions)).Equals(1)
