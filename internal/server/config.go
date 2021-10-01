@@ -13,6 +13,8 @@ type listener struct {
 	isDebug   bool
 	network   string
 	addr      string
+	path      string
+	fileMap   map[string]string
 	tlsConfig *tls.Config
 }
 

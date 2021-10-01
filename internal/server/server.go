@@ -45,7 +45,9 @@ func NewServer(config *ServerConfig) *Server {
 func (p *Server) Listen(
 	network string,
 	addr string,
+	path string,
 	tlsConfig *tls.Config,
+	fileMap map[string]string,
 ) *Server {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -55,7 +57,9 @@ func (p *Server) Listen(
 			isDebug:   false,
 			network:   network,
 			addr:      addr,
+			path:      path,
 			tlsConfig: tlsConfig,
+			fileMap:   fileMap,
 		})
 	} else {
 		p.streamHub.OnReceiveStream(rpc.MakeSystemErrorStream(
@@ -70,7 +74,9 @@ func (p *Server) Listen(
 func (p *Server) ListenWithDebug(
 	network string,
 	addr string,
+	path string,
 	tlsConfig *tls.Config,
+	fileMap map[string]string,
 ) *Server {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -80,7 +86,9 @@ func (p *Server) ListenWithDebug(
 			isDebug:   true,
 			network:   network,
 			addr:      addr,
+			path:      path,
 			tlsConfig: tlsConfig,
+			fileMap:   fileMap,
 		})
 	} else {
 		p.streamHub.OnReceiveStream(rpc.MakeSystemErrorStream(

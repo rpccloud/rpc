@@ -190,9 +190,18 @@ type syncWSServerService struct {
 func (p *syncWSServerService) Open() bool {
 	return p.orcManager.Open(func() bool {
 		adapter := p.adapter
+		path := adapter.path
+		if path == "" {
+			path = "/"
+		}
 
 		mux := http.NewServeMux()
-		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+
+		for k, v := range p.adapter.fileMap {
+			mux.Handle(k, http.FileServer(http.Dir(v)))
+		}
+
+		mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 			conn, _, _, e := ws.UpgradeHTTP(r, w)
 
 			if e != nil {

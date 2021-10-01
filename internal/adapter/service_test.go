@@ -54,7 +54,7 @@ func syncServerTestOpen(
 	receiver := newTestSingleReceiver()
 
 	v := NewSyncServerService(NewServerAdapter(
-		false, network, addr, tlsServerConfig, 1200, 1200, receiver,
+		false, network, addr, "/", tlsServerConfig, nil, 1200, 1200, receiver,
 	))
 	openOK := v.Open()
 	go func() {
@@ -138,7 +138,7 @@ func syncServerTestRun(
 	waitCH := make(chan bool)
 	receiver := newTestSingleReceiver()
 	server := NewSyncServerService(NewServerAdapter(
-		false, network, "127.0.0.1:65432", tlsServerConfig,
+		false, network, "127.0.0.1:65432", "/", tlsServerConfig, nil,
 		1200, 1200, receiver,
 	))
 	server.Open()
@@ -228,7 +228,7 @@ func syncServerTestClose(
 
 	receiver := newTestSingleReceiver()
 	v := NewSyncServerService(NewServerAdapter(
-		false, network, "127.0.0.1:65432", tlsServerConfig,
+		false, network, "127.0.0.1:65432", "/", tlsServerConfig, nil,
 		1200, 1200, receiver,
 	))
 	v.Open()
@@ -293,7 +293,7 @@ func syncClientTest(
 	}
 
 	server := NewSyncServerService(NewServerAdapter(
-		false, serverNetwork, addr, tlsServerConfig,
+		false, serverNetwork, addr, "/", tlsServerConfig, nil,
 		1200, 1200, newTestSingleReceiver(),
 	))
 	server.Open()

@@ -83,7 +83,7 @@ func TestServer_Listen(t *testing.T) {
 			},
 		)
 
-		v.Listen("tcp", "127.0.0.1:1234", nil)
+		v.Listen("tcp", "127.0.0.1:1234", "", nil, nil)
 		assert((<-errCH).GetCode()).
 			Equals(base.ErrServerAlreadyRunning.GetCode())
 		v.streamHub.Close()
@@ -92,12 +92,13 @@ func TestServer_Listen(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewServer(nil)
-		v.Listen("tcp", "127.0.0.1:1234", nil)
+		v.Listen("tcp", "127.0.0.1:1234", "", nil, nil)
 		assert(len(v.listeners)).Equals(1)
 		assert(v.listeners[0]).Equals(&listener{
 			isDebug:   false,
 			network:   "tcp",
 			addr:      "127.0.0.1:1234",
+			path:      "",
 			tlsConfig: nil,
 		})
 	})
@@ -119,7 +120,7 @@ func TestServer_ListenWithDebug(t *testing.T) {
 			},
 		)
 
-		v.ListenWithDebug("tcp", "127.0.0.1:1234", nil)
+		v.ListenWithDebug("tcp", "127.0.0.1:1234", "", nil, nil)
 		assert((<-errCH).GetCode()).
 			Equals(base.ErrServerAlreadyRunning.GetCode())
 		v.streamHub.Close()
@@ -128,7 +129,7 @@ func TestServer_ListenWithDebug(t *testing.T) {
 	t.Run("test ok", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewServer(nil)
-		v.ListenWithDebug("tcp", "127.0.0.1:1234", nil)
+		v.ListenWithDebug("tcp", "127.0.0.1:1234", "", nil, nil)
 		assert(len(v.listeners)).Equals(1)
 		assert(v.listeners[0]).Equals(&listener{
 			isDebug:   true,
@@ -242,7 +243,7 @@ func TestServer_Open(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewServer(nil)
 		v.config.numOfThreads = 256
-		v.Listen("tcp", "0.0.0.0:1234", nil)
+		v.Listen("tcp", "0.0.0.0:1234", "", nil, nil)
 
 		go func() {
 			for !v.IsRunning() {
@@ -265,7 +266,7 @@ func TestServer_Open(t *testing.T) {
 			},
 		)
 		s := NewServer(GetDefaultServerConfig().SetNumOfThreads(256)).
-			Listen("tcp", "0.0.0.0:1234", nil).
+			Listen("tcp", "0.0.0.0:1234", "", nil, nil).
 			AddService("test", service, nil)
 
 		go func() {
@@ -288,7 +289,7 @@ func TestServer_Open(t *testing.T) {
 	t.Run("OnRPCResponseErrorStream", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		s := NewServer(GetDefaultServerConfig().SetNumOfThreads(256)).
-			Listen("tcp", "0.0.0.0:1234", nil)
+			Listen("tcp", "0.0.0.0:1234", "", nil, nil)
 
 		go func() {
 			for !s.IsRunning() {
@@ -317,7 +318,7 @@ func TestServer_Open(t *testing.T) {
 			},
 		)
 		s := NewServer(GetDefaultServerConfig().SetNumOfThreads(256)).
-			Listen("tcp", "0.0.0.0:1234", nil).
+			Listen("tcp", "0.0.0.0:1234", "", nil, nil).
 			AddService("test", service, nil)
 
 		go func() {
@@ -374,7 +375,7 @@ func TestServer_Close(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewServer(nil)
 		v.config.numOfThreads = 256
-		v.Listen("tcp", "0.0.0.0:1234", nil)
+		v.Listen("tcp", "0.0.0.0:1234", "", nil, nil)
 
 		go func() {
 			v.Open()

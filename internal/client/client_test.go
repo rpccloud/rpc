@@ -82,7 +82,7 @@ func getTestServer() *server.Server {
 
 	rpcServer := server.NewServer(
 		server.GetDefaultServerConfig().SetNumOfThreads(256),
-	).ListenWithDebug("ws", "0.0.0.0:8765", nil)
+	).ListenWithDebug("ws", "0.0.0.0:8765", "", nil, nil)
 	rpcServer.AddService("user", userService, nil)
 
 	go func() {
@@ -121,7 +121,9 @@ type TestAdapter struct {
 	isClient   bool
 	network    string
 	addr       string
+	path       string
 	tlsConfig  *tls.Config
+	fileMap    map[string]string
 	rBufSize   int
 	wBufSize   int
 	receiver   adapter.IReceiver
@@ -365,7 +367,9 @@ func TestNewClient(t *testing.T) {
 		assert(testAdapter.isClient).IsTrue()
 		assert(testAdapter.network).Equals("ws")
 		assert(testAdapter.addr).Equals("127.0.0.1:8765")
+		assert(testAdapter.path).Equals("")
 		assert(testAdapter.tlsConfig).Equals(nil)
+		assert(testAdapter.fileMap).Equals(nil)
 		assert(testAdapter.rBufSize).Equals(1024)
 		assert(testAdapter.wBufSize).Equals(2048)
 		assert(testAdapter.receiver).Equals(v)
