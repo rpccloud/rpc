@@ -191,8 +191,8 @@ func (p *syncWSServerService) Open() bool {
 	return p.orcManager.Open(func() bool {
 		adapter := p.adapter
 		path := adapter.path
-		if path == "" {
-			path = "/"
+		if !strings.HasPrefix(path, "/") {
+			path = "/" + path
 		}
 
 		mux := http.NewServeMux()
