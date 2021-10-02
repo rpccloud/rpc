@@ -275,7 +275,7 @@ func TestServer_Open(t *testing.T) {
 			}
 
 			c := client.NewClient(
-				"tcp4", "127.0.0.1:1234", nil, 1024, 1024, nil,
+				"tcp4", "127.0.0.1:1234", "", nil, 1024, 1024, nil,
 			)
 			assert(c.Send(10*time.Second, "#.test:SayHello")).
 				Equals("Hello", nil)
@@ -297,7 +297,7 @@ func TestServer_Open(t *testing.T) {
 			}
 
 			c := client.NewClient(
-				"tcp4", "127.0.0.1:1234", nil, 1024, 1024, nil,
+				"tcp4", "127.0.0.1:1234", "", nil, 1024, 1024, nil,
 			)
 			_, err := c.Send(10*time.Second, "#.test:SayHello")
 			assert(err).IsNotNil()
@@ -328,7 +328,7 @@ func TestServer_Open(t *testing.T) {
 
 			wait := make(chan bool, 1)
 			c := client.NewClient(
-				"tcp4", "127.0.0.1:1234", nil, 1024, 1024, nil,
+				"tcp4", "127.0.0.1:1234", "", nil, 1024, 1024, nil,
 			)
 			c.Subscribe("#.test", "SayHello", func(value rpc.Any) {
 				assert(value).Equals("Hello")

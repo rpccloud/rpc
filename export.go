@@ -98,13 +98,14 @@ type Client = client.Client
 func NewClient(
 	network string,
 	addr string,
+	path string,
 	tlsConfig *tls.Config,
 	rBufSize int,
 	wBufSize int,
 	onError func(err *base.Error),
 ) *Client {
 	return client.NewClient(
-		network, addr, tlsConfig, rBufSize, wBufSize, onError,
+		network, addr, path, tlsConfig, rBufSize, wBufSize, onError,
 	)
 }
 

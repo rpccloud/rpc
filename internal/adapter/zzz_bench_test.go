@@ -86,7 +86,7 @@ func BenchmarkDebug(b *testing.B) {
 
 	cReceiver := &clientReceiver{streamCH: make(chan *rpc.Stream)}
 	clientAdapter := NewClientAdapter(
-		"tcp", "0.0.0.0:8080", nil, 1200, 1200, cReceiver,
+		"tcp", "0.0.0.0:8080", "", nil, 1200, 1200, cReceiver,
 	)
 
 	go func() {

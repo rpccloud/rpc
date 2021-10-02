@@ -340,7 +340,7 @@ func TestNewClient(t *testing.T) {
 
 		assert := base.NewAssert(t)
 		v := NewClient(
-			"ws", "127.0.0.1:8765", nil, 1024, 2048, func(_ *base.Error) {},
+			"ws", "127.0.0.1:8765", "", nil, 1024, 2048, func(_ *base.Error) {},
 		)
 
 		for {
@@ -650,7 +650,7 @@ func TestClient_Subscribe(t *testing.T) {
 	t.Run("test basic", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewClient(
-			"ws", "127.0.0.1:8080", nil, 1200, 1200, func(b *base.Error) {},
+			"ws", "127.0.0.1:8080", "", nil, 1200, 1200, func(b *base.Error) {},
 		)
 		defer v.Close()
 
@@ -672,7 +672,7 @@ func TestClient_Subscribe(t *testing.T) {
 		defer rpcServer.Close()
 
 		rpcClient := NewClient(
-			"ws", "0.0.0.0:8765", nil, 1200, 1200, func(b *base.Error) {},
+			"ws", "0.0.0.0:8765", "", nil, 1200, 1200, func(b *base.Error) {},
 		)
 		defer rpcClient.Close()
 
@@ -689,7 +689,7 @@ func TestClient_Subscribe(t *testing.T) {
 func TestClient_unsubscribe(t *testing.T) {
 	assert := base.NewAssert(t)
 	v := NewClient(
-		"ws", "127.0.0.1:8080", nil, 1200, 1200, func(b *base.Error) {},
+		"ws", "127.0.0.1:8080", "", nil, 1200, 1200, func(b *base.Error) {},
 	)
 	defer v.Close()
 
@@ -733,7 +733,7 @@ func TestClient_Send(t *testing.T) {
 		defer rpcServer.Close()
 
 		rpcClient := NewClient(
-			"ws", "0.0.0.0:8765", nil, 1200, 1200, func(b *base.Error) {},
+			"ws", "0.0.0.0:8765", "", nil, 1200, 1200, func(b *base.Error) {},
 		)
 		defer rpcClient.Close()
 
@@ -759,7 +759,7 @@ func TestClient_Close(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
 		v := NewClient(
-			"ws", "127.0.0.1:1234", nil, 1200, 1200, func(b *base.Error) {},
+			"ws", "127.0.0.1:1234", "", nil, 1200, 1200, func(b *base.Error) {},
 		)
 		assert(v.adapter).IsNotNil()
 		assert(v.Close()).IsTrue()

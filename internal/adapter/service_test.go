@@ -176,7 +176,7 @@ func syncServerTestRun(
 	// Start client
 	go func() {
 		client := NewSyncClientService(NewClientAdapter(
-			network, "127.0.0.1:65432", tlsClientConfig,
+			network, "127.0.0.1:65432", "", tlsClientConfig,
 			1200, 1200, newTestSingleReceiver(),
 		))
 		client.Open()
@@ -307,7 +307,7 @@ func syncClientTest(
 	clientReceiver := newTestSingleReceiver()
 	client := &syncClientService{
 		adapter: NewClientAdapter(
-			clientNetwork, addr, tlsClientConfig,
+			clientNetwork, addr, "", tlsClientConfig,
 			1200, 1200, clientReceiver,
 		),
 		orcManager: base.NewORCManager(),
@@ -335,7 +335,8 @@ func TestNewSyncClientService(t *testing.T) {
 			"tcp", "tcp4", "tcp6", "ws", "wss",
 		} {
 			adapter := NewClientAdapter(
-				network, "localhost", nil, 1200, 1200, newTestSingleReceiver(),
+				network, "localhost", "", nil,
+				1200, 1200, newTestSingleReceiver(),
 			)
 
 			service := NewSyncClientService(adapter).(*syncClientService)
@@ -351,7 +352,7 @@ func TestNewSyncClientService(t *testing.T) {
 
 		receiver := newTestSingleReceiver()
 		adapter := NewClientAdapter(
-			"err", "localhost", nil, 1200, 1200, receiver,
+			"err", "localhost", "", nil, 1200, 1200, receiver,
 		)
 
 		service := NewSyncClientService(adapter)
@@ -369,7 +370,8 @@ func TestNewSyncServerService(t *testing.T) {
 		assert := base.NewAssert(t)
 		for _, network := range []string{"tcp", "tcp4", "tcp6"} {
 			adapter := NewClientAdapter(
-				network, "localhost", nil, 1200, 1200, newTestSingleReceiver(),
+				network, "localhost", "", nil,
+				1200, 1200, newTestSingleReceiver(),
 			)
 
 			service := NewSyncServerService(adapter).(*syncTCPServerService)
@@ -380,7 +382,8 @@ func TestNewSyncServerService(t *testing.T) {
 
 		for _, network := range []string{"ws", "wss"} {
 			adapter := NewClientAdapter(
-				network, "localhost", nil, 1200, 1200, newTestSingleReceiver(),
+				network, "localhost", "", nil,
+				1200, 1200, newTestSingleReceiver(),
 			)
 
 			service := NewSyncServerService(adapter).(*syncWSServerService)
@@ -396,7 +399,7 @@ func TestNewSyncServerService(t *testing.T) {
 
 		receiver := newTestSingleReceiver()
 		adapter := NewClientAdapter(
-			"err", "localhost", nil, 1200, 1200, receiver,
+			"err", "localhost", "", nil, 1200, 1200, receiver,
 		)
 
 		service := NewSyncServerService(adapter)

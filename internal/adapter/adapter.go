@@ -53,6 +53,7 @@ type Adapter struct {
 func NewClientAdapter(
 	network string,
 	addr string,
+	path string,
 	tlsConfig *tls.Config,
 	rBufSize int,
 	wBufSize int,
@@ -63,7 +64,7 @@ func NewClientAdapter(
 		isClient:   true,
 		network:    network,
 		addr:       addr,
-		path:       "",
+		path:       path,
 		tlsConfig:  tlsConfig,
 		fileMap:    nil,
 		rBufSize:   rBufSize,

@@ -160,6 +160,7 @@ type Client struct {
 func NewClient(
 	network string,
 	addr string,
+	path string,
 	tlsConfig *tls.Config,
 	rBufSize int,
 	wBufSize int,
@@ -181,7 +182,7 @@ func NewClient(
 
 	// init adapter
 	clientAdapter := adapter.NewClientAdapter(
-		network, addr, tlsConfig, rBufSize, wBufSize, ret,
+		network, addr, path, tlsConfig, rBufSize, wBufSize, ret,
 	)
 	clientAdapter.Open()
 	go func() {

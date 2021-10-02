@@ -314,8 +314,12 @@ func (p *syncClientService) openConn() bool {
 	case "ws":
 		fallthrough
 	case "wss":
+		path := adapter.path
+		if !strings.HasPrefix(path, "/") {
+			path = "/" + path
+		}
 		dialer := &ws.Dialer{TLSConfig: adapter.tlsConfig}
-		u := url.URL{Scheme: adapter.network, Host: adapter.addr, Path: "/"}
+		u := url.URL{Scheme: adapter.network, Host: adapter.addr, Path: path}
 		wsRawConn, _, _, e = dialer.Dial(context.Background(), u.String())
 		conn = newSyncWSClientConn(wsRawConn)
 	default:

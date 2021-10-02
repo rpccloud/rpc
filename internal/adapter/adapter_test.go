@@ -276,7 +276,7 @@ func TestAdapter(t *testing.T) {
 
 		clientReceiver := newTestSingleReceiver()
 		clientAdapter := NewClientAdapter(
-			network, addr, tlsClientConfig,
+			network, addr, "", tlsClientConfig,
 			1200, 1200, clientReceiver,
 		)
 		assert(clientAdapter.Open()).IsTrue()
@@ -356,7 +356,7 @@ func TestAdapter(t *testing.T) {
 		assert := base.NewAssert(t)
 
 		assert(NewClientAdapter(
-			"err", "127.0.0.1:65432", nil,
+			"err", "127.0.0.1:65432", "", nil,
 			1200, 1200, newTestSingleReceiver(),
 		).Open()).IsFalse()
 

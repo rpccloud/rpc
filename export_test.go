@@ -23,7 +23,7 @@ func TestNewServer(t *testing.T) {
 func TestNewClient(t *testing.T) {
 	t.Run("test", func(t *testing.T) {
 		assert := base.NewAssert(t)
-		v := NewClient("ws", "127.0.0.1", nil, 1500, 1500, nil)
+		v := NewClient("ws", "127.0.0.1", "", nil, 1500, 1500, nil)
 		defer v.Close()
 		assert(v).IsNotNil()
 	})
