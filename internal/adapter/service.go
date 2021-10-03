@@ -198,7 +198,7 @@ func (p *syncWSServerService) Open() bool {
 		mux := http.NewServeMux()
 
 		for k, v := range p.adapter.fileMap {
-			mux.Handle(k, http.FileServer(http.Dir(v)))
+			mux.Handle(k, v)
 		}
 
 		mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {

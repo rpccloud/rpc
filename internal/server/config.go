@@ -2,6 +2,7 @@ package server
 
 import (
 	"crypto/tls"
+	"net/http"
 	"runtime"
 	"time"
 
@@ -14,7 +15,7 @@ type listener struct {
 	network   string
 	addr      string
 	path      string
-	fileMap   map[string]string
+	fileMap   map[string]http.Handler
 	tlsConfig *tls.Config
 }
 

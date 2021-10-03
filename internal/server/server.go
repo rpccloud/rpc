@@ -3,6 +3,7 @@ package server
 
 import (
 	"crypto/tls"
+	"net/http"
 	"path"
 	"runtime"
 	"sync"
@@ -47,7 +48,7 @@ func (p *Server) Listen(
 	addr string,
 	path string,
 	tlsConfig *tls.Config,
-	fileMap map[string]string,
+	fileMap map[string]http.Handler,
 ) *Server {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -76,7 +77,7 @@ func (p *Server) ListenWithDebug(
 	addr string,
 	path string,
 	tlsConfig *tls.Config,
-	fileMap map[string]string,
+	fileMap map[string]http.Handler,
 ) *Server {
 	p.mu.Lock()
 	defer p.mu.Unlock()

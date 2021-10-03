@@ -4,6 +4,7 @@ package adapter
 import (
 	"crypto/tls"
 	"net"
+	"net/http"
 
 	"github.com/rpccloud/rpc/internal/base"
 	"github.com/rpccloud/rpc/internal/rpc"
@@ -41,7 +42,7 @@ type Adapter struct {
 	addr       string
 	path       string
 	tlsConfig  *tls.Config
-	fileMap    map[string]string
+	fileMap    map[string]http.Handler
 	rBufSize   int
 	wBufSize   int
 	receiver   IReceiver
@@ -82,7 +83,7 @@ func NewServerAdapter(
 	addr string,
 	path string,
 	tlsConfig *tls.Config,
-	fileMap map[string]string,
+	fileMap map[string]http.Handler,
 	rBufSize int,
 	wBufSize int,
 	receiver IReceiver,
